@@ -110,7 +110,7 @@
                   $arr= array(
                     array("name"=>"Order",                "style"=>"", "descr"=>"", "ctl"=>"input"),
                     array("name"=>"Device Name",          "style"=>"", "descr"=>"", "ctl"=>"input"),
-                    array("name"=>"Tag Name",          "style"=>"", "descr"=>"Multiple Factors Are Separated By Semicolon", "ctl"=>"input"),
+                    array("name"=>"Tag Name",          "style"=>"", "descr"=>"Multiple Tags Are Separated By Semicolon", "ctl"=>"input"),
                     array("name"=>"Object Device ID",            "style"=>"", "descr"=>"", "ctl"=>"input"),
                     array("name"=>"Object Identifier",    "style"=>"", "descr"=>"", "ctl"=>"input"),
                     array("name"=>"Reporting Center",     "style"=>"", "descr"=>"Multiple Servers Are Separated By Minus", "ctl"=>"input"),
@@ -148,7 +148,7 @@
 
       InputControlCustom(_('Device Name'), $table_name.'.device_name', $table_name.'.device_name');
 
-      InputControlCustom(_('Tag Name'), $table_name.'.factor_name', $table_name.'.factor_name', _('Multiple Factors Are Separated By Semicolon'));
+      InputControlCustom(_('Tag Name'), $table_name.'.factor_name', $table_name.'.factor_name', _('Multiple Tags Are Separated By Semicolon'));
     ?>
 
     <div class="cbi-value">
