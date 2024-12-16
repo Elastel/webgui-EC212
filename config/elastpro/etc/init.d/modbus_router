@@ -1,20 +1,21 @@
 #! /bin/sh
 
-START_PROG=/usr/sbin/start_diald
-STOP_PROG=/usr/sbin/stop_diald
+TARGET=router-modbus
+PROG=/usr/sbin/$TARGET
 
 do_start()
 {
-	local proto lte_interface
-
-	proto=$(uci get network.swan.proto)
-
-	$START_PROG swan
+	$PROG >/dev/null &
 }
 
 do_stop()
 {
-	$STOP_PROG
+	killall -q $TARGET
+	sleep 1
+	[ -n "$(pgrep $TARGET)" ] && {
+		sleep 1
+		kill -9 $(pgrep $TARGET)
+	}
 }
 
 case "$1" in

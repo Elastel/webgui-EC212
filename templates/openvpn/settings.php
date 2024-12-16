@@ -76,7 +76,7 @@
       </div>
 
       <div class="cbi-value">
-        <label class="cbi-value-title"><?php echo _("Authentication algorithm"); ?></label>
+        <label class="cbi-value-title"><?php echo _("Authentication Algorithm"); ?></label>
         <select id="auth" name="auth" class="cbi-input-select">
           <option value="none">None</option>
           <?php 

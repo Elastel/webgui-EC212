@@ -235,8 +235,6 @@ echo "<div class=\"tab-pane $active\" id=\"server$num\">
                 <option value=\"2\">MQTT</option>
                 <option value=\"3\">SparkPlugB</option>
                 <option value=\"4\">HTTP</option>
-                <option value=\"5\">MODBUS TCP</option>
-                <option value=\"6\">TCP Server</option>
               </select>
             </div>
 
@@ -246,7 +244,6 @@ echo "<div class=\"tab-pane $active\" id=\"server$num\">
                 <select id=\"encap_type$num\" name=\"encap_type$num\" class=\"cbi-input-select\" onchange=\"encapChange($num)\">
                   <option value=\"0\">Transparent</option>
                   <option value=\"1\" selected=\"\">JSON</option>
-                  <option value=\"2\">HJ212</option>
                 </select>
               </div>
             </div>

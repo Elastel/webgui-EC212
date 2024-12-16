@@ -935,6 +935,9 @@ function handlePageActions($extraFooterScripts, $page, $config)
         case "/server_conf":
             DisplayServer();
             break;
+        case "/things_wing":
+            DisplayThingsWing();
+            break;
         case "/ddns":
             DisplayDDNS();
             break;
@@ -988,6 +991,9 @@ function handlePageActions($extraFooterScripts, $page, $config)
             break;
         case "/bacnet_router":
             DisplayBacnetRouter();
+            break;
+        case "/modbus_router":
+            DisplayModbusRouter();
             break;
         case "/backup_update":
             DisplayBackupUpdate();
@@ -1094,17 +1100,17 @@ function LabelControlCustom($title, $name, $id = null, $value = null, $descr = n
     echo '</div>';
 }
 
-function RadioControlCustom($title, $name, $id, $event, $num = null, $descr = null)
+function RadioControlCustom($title, $name, $id, $event, $num = null, $value = null, $descr = null)
 {
     echo '<div class="cbi-value">
         <label class="cbi-value-title">'.htmlspecialchars($title, ENT_QUOTES).'</label>' , PHP_EOL;
     echo '<input class="cbi-input-radio" id="'.htmlspecialchars($id, ENT_QUOTES).'_enable'.$num.'" ';
-    echo 'name="'.htmlspecialchars($name, ENT_QUOTES).$num.'" value="1" type="radio" checked ';
+    echo 'name="'.htmlspecialchars($name, ENT_QUOTES).$num.'" value="1" type="radio" ' . ($value == '1' ? 'checked ' : ' ');
     echo 'onchange="' . htmlspecialchars($event, ENT_QUOTES). '(true'.(($num != null)?(','.$num):'').', \''.$id.'\')">';
     echo '<label >' . _('Enable') . '</label>';
     echo PHP_EOL;
     echo '<input class="cbi-input-radio" id="'.htmlspecialchars($id, ENT_QUOTES).'_disable'.$num.'" ';
-    echo 'name="'.htmlspecialchars($name, ENT_QUOTES).$num.'" value="0" type="radio" ';
+    echo 'name="'.htmlspecialchars($name, ENT_QUOTES).$num.'" value="0" type="radio" ' . ($value == '0' || $value == NULL ? 'checked ' : ' ');
     echo 'onchange="' . htmlspecialchars($event, ENT_QUOTES). '(false'.(($num != null)?(','.$num):'').', \''.$id.'\')">';
     echo '<label >' . _('Disable') . '</label>';
     echo '</div>';

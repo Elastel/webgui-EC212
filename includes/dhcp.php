@@ -17,10 +17,10 @@ function DisplayDHCPConfig()
             
             if (isset($_POST['applydhcpdsettings'])) {
                 //exec('sudo /bin/systemctl restart dnsmasq.service', $dnsmasq, $return);
-                
-                   exec('sudo /etc/raspap/hostapd/servicestart.sh --interface br0 --seconds 3', $return); 
+                    exec('sudo ip addr flush dev br0'); // clear ip caches
+                    exec('sudo /etc/raspap/hostapd/servicestart.sh --interface br0 --seconds 3', $return);
                 if ($model == 'EG324L' || $model == 'EC212') {
-                   exec('/etc/init.d/S80dnsmasq restart; sleep 1; /etc/init.d/S80dhcpcd restart', $return); 
+                    exec('/etc/init.d/S80dnsmasq restart; sleep 1; /etc/init.d/S80dhcpcd restart', $return);
                 }
             }
         }
@@ -33,10 +33,10 @@ function DisplayDHCPConfig()
     $dnsmasq_state = ($dnsmasq[0] > 0);
 
     getWifiInterface();
-    $ap_iface = $_SESSION['ap_interface'];
+    $ap_iface = "br0";
     $serviceStatus = $dnsmasq_state ? 'up' : 'down';
-    exec('cat '. RASPI_DNSMASQ_PREFIX.'raspap.conf', $return);
-    $conf = ParseConfig($return);
+    // exec('cat '. RASPI_DNSMASQ_PREFIX.'raspap.conf', $return);
+    // $conf = ParseConfig($return);
     exec('cat '. RASPI_DNSMASQ_PREFIX.$ap_iface.'.conf', $return);
     $conf = array_merge(ParseConfig($return));
     $hosts = array();
