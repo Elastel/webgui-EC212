@@ -3,7 +3,7 @@
         <hr class="sidebar-divider my-0">
         <div class="row">
             <div class="col-xs ml-3 sidebar-brand-icon">
-            <img src="app/img/<?php echo ( ($target != null) ? "$hostname.php" : "elastel.php"); ?>" class="navbar-logo" width="200" height="50">
+            <img src="app/img/<?php echo ( ($target != null && $target != 'EC211') ? "$hostname.php" : "elastel.php"); ?>" class="navbar-logo" width="200" height="50">
             </div>
         </div>
         <li class="nav-item">
@@ -115,7 +115,7 @@
                         <div class="collapse navbar-collapse" id="navbar-collapse-vpn">
                             <ul class="nav navbar-nav navbar-right">
                                 <li class="nav-item" name="openvpn" id="remote_vpn_openvpn"> <a class="nav-link" href="openvpn"><?php echo _("OpenVPN"); ?></a></li>
-                                <?php if ($model != "EG324L" && $model != "EC212") : ?>
+                                <?php if(isBinExists("wg") && isBinExists("wg-quick")) : ?>
                                 <li class="nav-item" name="wireguard" id="remote_vpn_wireguard"> <a class="nav-link" href="wireguard"><?php echo _("WireGuard"); ?></a></li>
                                 <?php endif; ?>
                             </ul>
@@ -164,7 +164,7 @@
             </ul>
             </div>
         </li>
-        <?php if ($target == null) : ?>
+        <?php if ($target == null || $target == 'EC211') : ?>
         <li class="nav-item">
             <a class="nav-link" href="about"><i class="fas fa-info-circle fa-fw mr-2"></i><span class="nav-label"><?php echo _("About Elastel"); ?></a>
         </li>
