@@ -1,5 +1,4 @@
-#!/bin/sh
-
+#!/bin/bash
 
 if [ $1 == "0" ]; then
 	while true ;do

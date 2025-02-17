@@ -8,6 +8,8 @@ abstract class ComProtoEnum {
   const COM_PROTO_ASCII = 4;
   const COM_PROTO_DNP3 = 5;
   const COM_PROTO_BACNET = 6;
+  const COM_PROTO_MODBUS2IO = 7;
+  const COM_PROTO_MODBUS_ASCII = 8;
 };
 
 abstract class TcpProtoEnum {
@@ -23,8 +25,73 @@ abstract class TcpProtoEnum {
   const TCP_PROTO_BACNET = 9;
 };
 
+function get_io_maps()
+{
+  $model = getModel();
+  $channel_map = [];
+  $adc_index_count = 0;
+  $di_index_count = 0;
+  $do_index_count = 0;
+  $com_count = 4;
+
+  switch ($model) {
+      case "EG500":
+          $adc_index_count += 3;
+          $di_index_count += 6;
+          $do_index_count += 6;
+          $com_count = 2;
+          break;
+      case "EG410":
+          $di_index_count += 2;
+          $do_index_count += 2;
+          $com_count = 2;
+          break;
+  }
+
+  for ($i = 1; $i <= $com_count; $i++) {
+      exec("sudo uci get dct.com.proto$i", $tmp);
+      if ($tmp[0] == '7') {
+          unset($tmp);
+          exec("sudo uci get dct.com.controller_model$i", $tmp);
+          switch($tmp[0]) {
+              case '0':
+                  $channel_map[$i] .= 'DI' . $di_index_count++ . ';DI' . $di_index_count++;
+                  $channel_map[$i] .= ';DO' . $do_index_count++ . ';DO' . $do_index_count++;
+                  break;
+              case '1':
+                  $channel_map[$i] .= 'DI' . $di_index_count++ . ';DI' . $di_index_count++ . 
+                                      ';DI' . $di_index_count++ . ';DI' . $di_index_count++;
+                  $channel_map[$i] .= ';DO' . $do_index_count++ . ';DO' . $do_index_count++ . 
+                                      ';DO' . $do_index_count++. ';DO' . $do_index_count++;
+                  break;
+              case '2':
+                  $channel_map[$i] .= 'DI' . $di_index_count++ . ';DI' . $di_index_count++ . 
+                                      ';DI' . $di_index_count++ . ';DI' . $di_index_count++ . 
+                                      ';DI' . $di_index_count++ . ';DI' . $di_index_count++ . 
+                                      ';DI' . $di_index_count++ . ';DI' . $di_index_count++;
+                  $channel_map[$i] .= ';DO' . $do_index_count++ . ';DO' . $do_index_count++ . 
+                                      ';DO' . $do_index_count++. ';DO' . $do_index_count++ . 
+                                      ';DO' . $do_index_count++. ';DO' . $do_index_count++ . 
+                                      ';DO' . $do_index_count++. ';DO' . $do_index_count++;
+                  break;
+              case '3':
+                  $channel_map[$i] .= 'ADC' . $adc_index_count++ . ';ADC' . $adc_index_count++ .
+                                      ';ADC' . $adc_index_count++ . ';ADC' . $adc_index_count++ .
+                                      ';ADC' . $adc_index_count++ . ';ADC' . $adc_index_count++ .
+                                      ';ADC' . $adc_index_count++ . ';ADC' . $adc_index_count++;
+                  break;
+          }
+      }
+      unset($tmp);
+  }
+
+  echo $channel_map[0];
+  return $channel_map;
+}
+
 function get_belonged_interface($com_proto, $tcp_proto)
 {
+  $found = false;
   $option_list = array();
   $i = 0;
   exec("sudo uci get dct.com.enabled1", $com1_enable);
@@ -49,43 +116,48 @@ function get_belonged_interface($com_proto, $tcp_proto)
   exec("sudo uci get dct.tcp_server.proto4", $tcp4_proto);
   exec("sudo uci get dct.tcp_server.proto5", $tcp5_proto);
 
-  if ($com1_enable[0] == "1" && $com1_proto[0] == $com_proto) {
+  if ($com1_enable[0] == "1" && 
+      ($com1_proto[0] == $com_proto || $com1_proto[0] + $com_proto == ComProtoEnum::COM_PROTO_MODBUS_ASCII )) {
     $option_list["COM1"] = "COM1";
+    $found = true;
   }
-  if ($com2_enable[0] == "1" && $com2_proto[0] == $com_proto) {
+  if ($com2_enable[0] == "1" && 
+      ($com2_proto[0] == $com_proto || $com2_proto[0] + $com_proto == ComProtoEnum::COM_PROTO_MODBUS_ASCII )) {
     $option_list["COM2"] = "COM2";
+    $found = true;
   }
-  if ($com3_enable[0] == "1" && $com3_proto[0] == $com_proto) {
+  if ($com3_enable[0] == "1" && 
+      ($com3_proto[0] == $com_proto || $com3_proto[0] + $com_proto == ComProtoEnum::COM_PROTO_MODBUS_ASCII )) {
     $option_list["COM3"] = "COM3";
+    $found = true;
   }
-  if ($com4_enable[0] == "1" && $com4_proto[0] == $com_proto) {
+  if ($com4_enable[0] == "1" && 
+      ($com4_proto[0] == $com_proto || $com4_proto[0] + $com_proto == ComProtoEnum::COM_PROTO_MODBUS_ASCII )) {
     $option_list["COM4"] = "COM4";
+    $found = true;
   }  
   if ($tcp1_enable[0] == "1" && $tcp1_proto[0] == $tcp_proto) {
     $option_list["TCP1"] = "Network Node1";
+    $found = true;
   }
   if ($tcp2_enable[0] == "1" && $tcp2_proto[0] == $tcp_proto) {
     $option_list["TCP2"] = "Network Node2";
+    $found = true;
   }
   if ($tcp3_enable[0] == "1" && $tcp3_proto[0] == $tcp_proto) {
     $option_list["TCP3"] = "Network Node3";
+    $found = true;
   }
   if ($tcp4_enable[0] == "1" && $tcp4_proto[0] == $tcp_proto) {
     $option_list["TCP4"] = "Network Node4";
+    $found = true;
   }
   if ($tcp5_enable[0] == "1" && $tcp5_proto[0] == $tcp_proto) {
     $option_list["TCP5"] = "Network Node5";
+    $found = true;
   }
 
-  if (($com1_enable[0] == null || $com1_enable[0]  == "0"  || $com1_proto[0] != $com_proto) &&
-    ($com2_enable[0] == null || $com2_enable[0]  == "0" || $com2_proto[0] != $com_proto) &&
-    ($com3_enable[0] == null || $com3_enable[0]  == "0" || $com3_proto[0] != $com_proto) &&
-    ($com4_enable[0] == null || $com4_enable[0]  == "0" || $com4_proto[0] != $com_proto) &&
-    ($tcp1_enable[0] == null || $tcp1_enable[0]  == "0" || $tcp1_proto[0] != $tcp_proto) &&
-    ($tcp2_enable[0] == null || $tcp2_enable[0]  == "0" || $tcp2_proto[0] != $tcp_proto) &&
-    ($tcp3_enable[0] == null || $tcp3_enable[0]  == "0" || $tcp3_proto[0] != $tcp_proto) &&
-    ($tcp4_enable[0] == null || $tcp4_enable[0]  == "0" || $tcp4_proto[0] != $tcp_proto) &&
-    ($tcp5_enable[0] == null || $tcp5_enable[0]  == "0" || $tcp5_proto[0] != $tcp_proto)) {
+  if ($found == false) {
       $option_list["No Interface Is Enabled"] = _("No Interface Is Enabled");
   }
   
@@ -119,7 +191,7 @@ function page_interface_com($num)
 
   InputControlCustom(_("Frame Interval"), 'com_frame_interval'.$num, 'com_frame_interval'.$num, _('ms'), 200);
 
-  $com_proto = array('Modbus', 'Transparent', 'FX', 'MC', 'ASCII', 'DNP3', 'BACnet/MSTP');
+  $com_proto = array('Modbus RTU', 'Transparent', 'FX', 'MC', 'ASCII', 'DNP3', 'BACnet/MSTP', 'Modbus2io', 'Modbus ASCII');
   SelectControlCustom(_('Protocol'), 'com_proto'.$num, $com_proto, $com_proto[0], 'com_proto'.$num, null, "comProtocolChange($num)");
 
   echo '<div id="com_page_protocol_modbus'.$num.'" name="com_page_protocol_modbus'.$num.'">';
@@ -141,6 +213,13 @@ function page_interface_com($num)
   InputControlCustom(_('Frames'), 'com_frames'.$num, 'com_frames'.$num, "1~127");
   $collect_mode = array('poll'=>'poll', 'cov'=>'cov');
   SelectControlCustom(_('Collect Mode'), 'com_collect_mode'.$num, $collect_mode, $collect_mode['poll'], 'com_collect_mode'.$num);
+  echo '</div>';
+
+  echo '<div id="com_page_controller_model'.$num.'" name="com_page_controller_model'.$num.'">';
+  $com_controller_model = array('EIO-2DIO', 'EIO-4DIO', 'EIO-8DIO', 'EIO-8AI');
+  SelectControlCustom(_('Controller Model'), 'com_controller_model'.$num, $com_controller_model, $com_controller_model[0], 'com_controller_model'.$num);
+  $channel_map = get_io_maps();
+  LabelControlCustom(_("Channel Map"), 'channel_map'.$num, 'channel_map'.$num, $channel_map[$num] != null ? $channel_map[$num] : '-');
   echo '</div>';
 
 echo '</div><!-- /.page_com -->
@@ -166,7 +245,7 @@ function page_interface_tcp($num)
 
   InputControlCustom(_("Frame Interval"), 'tcp_frame_interval'.$num, 'tcp_frame_interval'.$num, _('ms'), 200);
 
-  $tcp_proto = array('Modbus', 'Transparent', 'S7', 'FX', 'MC', 'ASCII', 'IEC104', 'OPCUA', 'DNP3', 'BACnet/IP');
+  $tcp_proto = array('Modbus TCP', 'Transparent', 'S7', 'FX', 'MC', 'ASCII', 'IEC104', 'OPCUA', 'DNP3', 'BACnet/IP');
   SelectControlCustom(_('Protocol'), 'tcp_proto'.$num, $tcp_proto, $tcp_proto[0], 'tcp_proto'.$num, null, "tcpProtocolChange($num)");
 
   echo '<div id="tcp_page_protocol_modbus'.$num.'" name="tcp_page_protocol_modbus'.$num.'">';

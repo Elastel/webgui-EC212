@@ -45,7 +45,7 @@
             
             if ($model[0] == "EG324") {
               $comlist = array('/dev/ttyAMA0'=>'COM1', '/dev/ttyAMA1'=>'COM2');
-            } else if ($model[0] == "EG324L" || $model[0] == "EC212") {
+            } else if ($model[0] == "EG324L") {
               $comlist = array('/dev/ttyS1'=>'COM1', '/dev/ttyS2'=>'COM2');
             } else {
               $comlist = array('/dev/ttyACM0'=>'COM1');

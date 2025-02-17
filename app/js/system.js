@@ -88,7 +88,7 @@ $('.download_backup').click(function(){
             const minutes = ('0' + now.getMinutes()).slice(-2);
             const seconds = ('0' + now.getSeconds()).slice(-2);
             const formattedTime = year + month + day + hours + minutes;
-            link.download = 'configs_' + formattedTime + '.tar';
+            link.download = 'configs_' + formattedTime + '.tar.gz';
             link.click();
         }
     }
