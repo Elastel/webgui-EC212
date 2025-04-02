@@ -85,7 +85,16 @@ function DisplaySystem()
                 $old_hostname = $buff[0];
                 $new_hostname = $_POST['hostname'];
                 exec("sudo hostnamectl set-hostname $new_hostname");
-                exec("sudo sed -i 's/$old_hostname/$new_hostname/g' /etc/hosts");
+                // check hostname is set
+                unset($buff);
+                exec("cat /proc/sys/kernel/hostname", $buff);
+                $check_hostname = $buff[0];
+                if ($check_hostname != $new_hostname) {
+                    $status->addMessage('Failed to set hostname', 'danger');
+                } else {
+                    $status->addMessage('Hostname set successfully', 'success');
+                    exec("sudo sed -i 's/$old_hostname/$new_hostname/g' /etc/hosts");
+                }
             } else {
                 $new_hostname = $_POST['hostname'];
                 exec("echo $new_hostname > /etc/hostname");

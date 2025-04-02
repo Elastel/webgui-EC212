@@ -30,6 +30,7 @@ textarea {
         <div class="cbi-section-descr">To restore configuration files, you can upload a previously generated backup archive here.</div>
         </br>
         <div class="cbi-value">
+          <input hidden="hidden" name="page_im_ex_name" id="page_im_ex_name" value="0">
           <label class="cbi-value-title"><?php echo _("Restore backup"); ?></label>
           <label for="upload" class="cbi-file-lable\">
             <input type="file" name="upload_file" id="upload_file">

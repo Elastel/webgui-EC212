@@ -84,6 +84,7 @@ function DisplayBackupRestore()
         }
     }
 
+    $upload_backup_list = '';
     if ( isset($_POST['upload']) ) {
         if (strlen($_FILES['upload_file']['name']) > 0) {
             if (is_uploaded_file($_FILES['upload_file']['tmp_name'])) {
@@ -94,7 +95,6 @@ function DisplayBackupRestore()
                 }
 
                 $ret = save_upload_file($_FILES['upload_file']);
-                $upload_backup_list = '';
                 if ($ret) {
                     exec("tar tzf /tmp/backup.tar.gz", $tmp);
                     $upload_backup_list = implode("\n", $tmp);
