@@ -37,8 +37,9 @@ iotedge_package_check() {
         if [ $model == "EG500" -o $model == "EG410" -o $model == "ElastBox400" ]; then
                 curl https://packages.microsoft.com/config/debian/11/packages-microsoft-prod.deb > /tmp/packages-microsoft-prod.deb
                 sudo apt install /tmp/packages-microsoft-prod.deb
+		sudo apt-get update
                 sudo apt-get install moby-engine -y
-                sudo apt-get install aziot-edge -y
+		echo 'Yes, do as I say!' | sudo apt-get install aziot-edge
         else
                 echo "Not support iotedge";
         fi
@@ -95,8 +96,6 @@ fi
 
 if [ "$1" == "reset" ]; then
     echo $1
-    sudo cp $path/raspap.php /etc/raspap/raspap.php
-    chown -R www-data:www-data /etc/raspap/raspap.php
     sudo cp $path/config/hostapd.conf /etc/hostapd/hostapd.conf
     if [ "$model" = "EG324" ]; then
         sed -i "s/nl80211/rtl871xdrv/g" /etc/hostapd/hostapd.conf
@@ -239,6 +238,11 @@ sleep 1
 if [[ $bit = "64" || $model = "EG324" || $model = "EG324L" || $model = "EC212" ]]; then
         sudo /etc/init.d/hostapd stop
 	sudo cp -r $path/Elastel/$model/usr/* /usr/
+        #Turn off automatic updates
+        if [[ $model = "EG324" ]]; then
+                sudo systemctl stop unattended-upgrades.service
+                sudo systemctl disable unattended-upgrades.service
+        fi
 elif [ $bit = "32" ]; then
 	sudo cp -r $path/Elastel/$model/32/usr/* /usr/
 fi

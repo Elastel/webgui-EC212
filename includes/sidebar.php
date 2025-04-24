@@ -56,6 +56,7 @@
                             <?php if (isBinExists("baccli")) : ?>
                             <li class="nav-item" name="bacnet_client" id="dct_south_bacnet_client"><a class="nav-link" href="baccli_conf"><?php echo _("BACnet Rules"); ?></a></li>
                             <?php endif; ?>
+                            <li class="nav-item" name="ethernetip" id="dct_south_ethernetip"><a class="nav-link" href="ethernetip_conf"><?php echo _("EtherNet/IP Rules"); ?></a></li>
                             <?php if (isIoExistts()) : ?>
                             <li class="nav-item" name="io" id="dct_south_io"><a class="nav-link" href="io_conf"><?php echo _("IO"); ?></a></li>
                             <?php endif; ?>
@@ -159,7 +160,7 @@
                 <?php if(isBinExists("gpsd")) : ?>
                 <li class="nav-item" name="gps" id="system_gps"> <a class="nav-link" href="gps"><?php echo _("GPS Location"); ?></a></li>
                 <?php endif; ?>
-                <?php if(isBinExists("ttyd")) : ?>
+                <?php if(isBinExists("ttyd") || file_exists("/usr/local/bin/ttyd")) : ?>
                 <li class="nav-item" name="terminal" id="system_terminal"> <a class="nav-link" href="terminal"><?php echo _("Terminal"); ?></a></li>
                 <?php endif; ?>
                 <li class="nav-item" name="auth_conf" id="system_auth_conf"> <a class="nav-link" href="auth_conf"><?php echo _("Authentication"); ?></a></li>
