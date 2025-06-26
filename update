@@ -89,7 +89,7 @@ reset_configuration() {
                 if [[ -e "/etc/chirpstack" ]]; then
                         sudo cp $path/config/chirpstack.toml /etc/chirpstack/chirpstack.toml
                         sudo cp $path/config/chirpstack-gateway-bridge.toml /etc/chirpstack-gateway-bridge/chirpstack-gateway-bridge.toml
-                fi
+                fi  
         else
                 if [ -f /etc/init.d/S42htset ]; then
                         sudo rm /etc/init.d/S42htset
@@ -104,7 +104,14 @@ reset_configuration() {
                         tar xzvf $path/config/zoneinfo.tar.gz -C /usr/share/
                 fi
 
-                sudo rm /etc/localtime && sudo ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+                sudo rm /etc/localtime && sudo ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+        fi
+
+        if [[ $model == "EC212" ]]; then
+                # set lan
+                cp $path/config/dhcpcd-eth0.conf /etc/dhcpcd.conf
+                uci set network.wan.wan_multi='1'
+		uci commit network
         fi
 
         ssid="$target"_"$sub_mac"
@@ -127,13 +134,15 @@ if [[ $model != "EG324L" && $model != "EC212" ]]; then
         install_package_if_needed "msmtp" "msmtp"
         install_package_if_needed "mutt" "mutt"
         install_package_if_needed "dos2unix" "dos2unix"
+        install_package_if_needed "wireless-tools" "iwconfig"
+        install_package_if_needed "bridge-utils" "brctl"
         set_resolvconf
 fi
 
 sleep 1
 if [ $model == "EG324" ]; then
         if [ ! -f /usr/lib/arm-linux-gnueabihf/libjson-c.so.4 ]; then
-                sudo ln -s /usr/lib/arm-linux-gnueabihf/libjson-c.so /usr/lib/arm-linux-gnueabihf/libjson-c.so.4
+                sudo ln -sf /usr/lib/arm-linux-gnueabihf/libjson-c.so /usr/lib/arm-linux-gnueabihf/libjson-c.so.4
         fi
 fi
 
@@ -178,7 +187,7 @@ if [[ $model == "EG500" || $model == "EG410" || $model == "ElastBox400" ]]; then
         sleep 1
 
         sudo rm /etc/rc5.d/S10loragw
-        sudo ln -s /etc/init.d/loragw /etc/rc5.d/S10loragw
+        sudo ln -sf /etc/init.d/loragw /etc/rc5.d/S10loragw
         sudo /etc/init.d/loragw stop
         sudo cp $path/installers/reset_lgw.sh /usr/sbin/
         sudo cp $path/config/modules.conf /etc/modules-load.d/
@@ -209,16 +218,16 @@ app_array=("bacnet_router" "dct" "ddns" "edaemon" "failover" "firewall"
 
 for item in "${app_array[@]}"; do
         sudo /etc/init.d/$item stop
-        if [ $model != "EG324L" -a $model != "EC212" ]; then
+        if [ "$model" != "EG324L" ] && [ "$model" != "EC212" ]; then
                 sudo update-rc.d $item remove
-                if [ $item == "init-wifi" -o $item == "terminal" ]; then
-                        sudo ln -s /etc/init.d/$item /etc/rc5.d/S01$item
+                if [ "$item" == "init-wifi" ] || [ "$item" == "terminal" ]; then
+                        sudo ln -sf /etc/init.d/$item /etc/rc5.d/S01$item
                 else
-                        sudo ln -s /etc/init.d/$item /etc/rc5.d/S10$item
+                        sudo ln -sf /etc/init.d/$item /etc/rc5.d/S10$item
                 fi
         else
                 sudo rm /etc/init.d/S90$item
-                sudo ln -s /etc/init.d/$item /etc/init.d/S90$item
+                sudo ln -sf /etc/init.d/$item /etc/init.d/S90$item
         fi
 done
 

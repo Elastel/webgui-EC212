@@ -74,11 +74,27 @@ function removeDHCPConfig($iface,$status)
 {
     $orgin_str = file_get_contents(RASPI_DHCPCD_CONFIG);
     if ($iface == "eth0") {
-        $count = strpos($orgin_str, "denyinterfaces");
+        exec("sudo /usr/local/bin/uci get wifi.wifi_client.enabled", $tmp);
+        $enablewificlient = $tmp[0];
+
         if ($_POST['wan-multi'] == '1') {
-            $dhcp_cfg = substr_replace($orgin_str, 'denyinterfaces eth1 wlan0 eth0' . PHP_EOL, number_format($count), 31);
+            if ($enablewificlient == '1') {
+                $new_deny = 'denyinterfaces eth1 eth0';
+            } else {
+                $new_deny = 'denyinterfaces eth1 wlan0 eth0';
+            }
         } else {
-            $dhcp_cfg = substr_replace($orgin_str, 'denyinterfaces eth1 wlan0     ' . PHP_EOL, number_format($count), 31);
+            if ($enablewificlient == '1') {
+                $new_deny = 'denyinterfaces eth1';
+            } else {
+                $new_deny = 'denyinterfaces eth1 wlan0';
+            }
+        }
+
+        if (preg_match('/^denyinterfaces.*$/m', $orgin_str)) {
+            $dhcp_cfg = preg_replace('/^denyinterfaces.*$/m', $new_deny, $orgin_str, 1);
+        } else {
+            $dhcp_cfg = rtrim($orgin_str) . PHP_EOL . $new_deny . PHP_EOL;
         }
     } else {
         $dhcp_cfg = $orgin_str;
@@ -854,6 +870,71 @@ function loadFooterScripts($extraFooterScripts)
     }
 }
 
+/**
+ * Validate whether the given network interface exists on the system.
+ * This function retrieves all currently available network interfaces using the `ip link show` command
+ * and checks if the provided interface name is in the list.
+ */
+function validateInterface($interface)
+{
+    // Retrieve all available network interfaces
+    $valid_interfaces = shell_exec('ip -o link show | awk -F": " \'{print $2}\'');
+
+    // Convert to array (one interface per line)
+    $valid_interfaces = explode("\n", trim($valid_interfaces));
+
+    // Check if the provided interface exists in the list
+    return in_array($interface, $valid_interfaces, true);
+}
+
+function switchWifiMode($enabled)
+{
+    $model = getModel();
+    $dhcpcd_conf = '/etc/dhcpcd.conf';
+    $tmp_dhcpcd_conf = '/tmp/dhcpcd.conf';
+    $lines = file($dhcpcd_conf, FILE_IGNORE_NEW_LINES);
+    $found = false;
+
+    foreach ($lines as $i => $line) {
+        if (strpos($line, 'denyinterfaces') === 0) {
+            $found = true;
+            if ($enabled == 1 && preg_match('/\bwlan0\b/', $line)) {
+                $line = preg_replace('/\bwlan0\b\s*/', '', $line);
+                if (trim($line) == 'denyinterfaces') {
+                    unset($lines[$i]);
+                } else {
+                    $lines[$i] = $line;
+                }
+            }
+            if ($enabled == 0 && !preg_match('/\bwlan0\b/', $line)) {
+                $lines[$i] = rtrim($line) . ' wlan0';
+            }
+        }
+    }
+
+    file_put_contents($tmp_dhcpcd_conf, implode("\n", $lines) . "\n");
+    exec("sudo cp $tmp_dhcpcd_conf $dhcpcd_conf");
+
+    exec("sudo kill -9 $(pgrep -x wpa_supplicant)");
+    if ($model == "EG324" || $model == "EG324L" || $model == "EC212") {
+        exec("sudo /usr/sbin/init-wlan0 &");
+        sleep(3);
+    } else {
+        if ($enabled == 1) {
+            // switch to sta mode
+            exec("sudo systemctl stop hostapd.service; sudo systemctl mask hostapd.service; sleep 1; sudo systemctl disable hostapd.service; sudo brctl delif br0 wlan0");
+            exec("sudo systemctl restart dhcpcd.service; sudo systemctl restart dnsmasq.service");
+            $cmd = "sudo wpa_supplicant -B -Dnl80211 -c/etc/wpa_supplicant/wpa_supplicant.conf -i". $_SESSION['wifi_client_interface'];
+            shell_exec($cmd);
+        } else {
+            // switch to ap mode
+            exec("sudo ifconfig wlan0 down; sleep 1; sudo ifconfig wlan0 up; sudo brctl addif br0 wlan0");
+            exec("sudo systemctl unmask hostapd.service; sudo systemctl enable hostapd.service; sleep 1; sudo systemctl start hostapd.service");
+            exec("sudo systemctl restart dhcpcd.service; sudo systemctl restart dnsmasq.service");
+        }
+    }
+}
+
 function handlePageActions($extraFooterScripts, $page)
 {
     // handle page actions
@@ -867,8 +948,11 @@ function handlePageActions($extraFooterScripts, $page)
         case "/wpa_conf":
             DisplayWPAConfig();
             break;
-        case "/network_conf":
-            DisplayNetworkingConfig();
+        case "/wired_conf":
+            DisplayNetworkingConfig('wired');
+            break;
+        case "/lte_conf":
+            DisplayNetworkingConfig('lte');
             break;
         case "/hostapd_conf":
             DisplayHostAPDConfig();
