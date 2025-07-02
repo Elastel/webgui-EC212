@@ -65,7 +65,7 @@
                   $arr= array(
                     array("name"=>"Source Object",          "style"=>"", "descr"=>"", "ctl"=>"select"),
                     array("name"=>"Group ID",             "style"=>"", "descr"=>"", "ctl"=>"select"),
-                    array("name"=>"Number of Points",     "style"=>"", "descr"=>"0~100", "ctl"=>"input"),
+                    array("name"=>"Index Number",     "style"=>"", "descr"=>"0~100", "ctl"=>"input"),
                     array("name"=>"Enable",               "style"=>"", "descr"=>"", "ctl"=>"check"),
                   );
                   page_table_title('dnp3', $arr);
@@ -101,7 +101,7 @@
                       /*'OCTECT_STRING' => 'OCTECT_STRING'*/];
       SelectControlCustom(_('Group ID'), $table_name.'.group_id', $group_id_list, $group_id_list['ANALOG_INPUT'], $table_name.'.group_id');
     
-      InputControlCustom(_('Number of Points'), $table_name.'.point_number', $table_name.'.point_number');
+      InputControlCustom(_('Index Number'), $table_name.'.point_number', $table_name.'.point_number');
 
       CheckboxControlCustom(_('Enable'), $table_name.'.enabled', $table_name.'.enabled', 'checked');
     ?>
