@@ -1,20 +1,24 @@
 
 config interface 'wan'
 	option device 'eth0'
-	option wan_multi '0'
 	option proto 'dhcp'
+	option wan_multi '1'
 
 config interface 'lan'
 	option ifname 'br0'
-	option ip '192.168.1.1'
 	option netmask '255.255.255.0'
+	option mac '20:ed:af:1c:98:44'
+	option ip '192.168.1.1'
 
 config interface 'swan'
 	option proto 'lte'
 	option device '/dev/cdc-wdm0'
 	option pdptype 'ipv4'
-	option ifname 'wwan0'
 	option auth 'none'
+	option ifname 'eth1'
+	option metric '207'
+	option apn 'linksapn'
+	option service 'lte'
 
 config setting 'detection'
 	option secondary_addr '8.8.8.8'

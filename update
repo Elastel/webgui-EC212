@@ -8,7 +8,6 @@ echo $(date +%F%n%T):failed >/etc/update_status
 
 model=${model:-"EG500"}
 target=${target:-$model}
-echo model:$model
 
 install_package_if_needed() {
         local package_name=$1
@@ -60,6 +59,7 @@ set_resolvconf() {
 }
 
 reset_configuration() {
+        sudo cp $path/raspap.php /etc/raspap/raspap.php
         sudo cp $path/config/hostapd.conf /etc/hostapd/hostapd.conf
         [[ $model == "EG324" ]] && sed -i "s/nl80211/rtl871xdrv/g" /etc/hostapd/hostapd.conf
         sudo cp $path/config/90_raspap.conf /etc/sysctl.d/90_raspap.conf

@@ -84,7 +84,6 @@
                     <div class="collapse navbar-collapse" id="navbar-collapse-north">
                         <ul class="nav navbar-nav navbar-right">
                             <li class="nav-item" name="server" id="dct_north_server"><a class="nav-link" href="server_conf"><?php echo _("Reporting Center"); ?></a></li>
-                            <li class="nav-item" name="modbus_slave" id="dct_north_modbus_slave"><a class="nav-link" href="modbus_slave"><?php echo _("Modbus Slave"); ?></a></li>
                             <li class="nav-item" name="opcua" id="dct_north_opcua"><a class="nav-link" href="opcua"><?php echo _("OPCUA Server"); ?></a></li>
                             <?php if(isBinExists("bacserv")) : ?>
                             <li class="nav-item" name="bacnet" id="dct_north_bacnet"><a class="nav-link" href="bacnet"><?php echo _("BACnet Server"); ?></a></li>
@@ -182,11 +181,6 @@
             </ul>
             </div>
         </li>
-        <?php if ($target == null || $target == 'EC211') : ?>
-        <li class="nav-item">
-            <a class="nav-link" href="about"><i class="fas fa-info-circle fa-fw mr-2"></i><span class="nav-label"><?php echo _("About Elastel"); ?></a>
-        </li>
-        <?php endif; ?>
         <li class="nav-item">
             <a class="nav-link" href="logout"><i class="fas fa-sign-out-alt mr-2"></i><span class="nav-label"><?php echo _("Logout"); ?></a>
         </li>

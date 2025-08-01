@@ -8,8 +8,7 @@
           <div class="col-12">
             <!-- branding -->
             <div class="text-center mb-3">
-              <img src="app/img/<?php echo (($target != null) ? ($hostname . ".png") : "elastel.png"); ?>" class="navbar-logo" alt="Elastel logo" class="img-fluid" style="max-width: 100px;">
-              <h2 class="login-brand"><?php echo htmlspecialchars(RASPI_BRAND_TEXT); ?></h2>
+              <img src="app/img/<?php echo (($target != null) ? ($hostname . ".png") : "elastel.png"); ?>" class="navbar-logo" alt="Elastel logo" class="img-fluid" style="width: 20rem;">
               <div class="mt-2 admin-login"><?php echo _("Administrator login") ?></div>
               <div class="text-center text-danger mt-1 mb-3"><?php echo $status ?></div>
             </div>
@@ -28,15 +27,15 @@
                       <i class="fas fa-eye text-secondary text-opacity-50"></i>
                     </button>
                   </div>
-
                 </div>
                 <button type="submit" class="btn btn-outline btn-admin-login rounded-pill w-75 mt-4"><?php echo _("Login") ?></button>
-                <a href="https://docs.elastel.com/" class="mt-2 d-block text-decoration-none" target="_blank">
-                  <i class="fas fa-book me-1"></i> User Guide
-                </a>
               </form>
             </div>
           </div><!-- /.col -->
+          <div class="text-center mt-2 mb-3 position-absolute w-100" style="bottom: 0; left: 0;">
+            <a href="https://www.daxview.com" style="font-size:1.5rem; text-decoration:underline;" class="mt-2 d-block" target="_blank">www.daxview.com</a>
+            <span style="font-weight:bold; font-size:1.5rem;"><?php echo _("Mun Hean Singapore Pte Ltd") ?></span>
+          </div>
         </div><!-- /.row -->
       </div><!-- /.modal-body -->
     </div><!-- /.modal-content -->

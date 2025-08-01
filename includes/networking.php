@@ -96,8 +96,6 @@ function DisplayNetworkingConfig($type)
                 $lte_interface = [$cur_interface[0]];
             }
         }
-
-        $lte_mac = exec('cat /sys/class/net/wwan0/address');
     }
 
     // $routeInfo = getRouteInfo(true);
@@ -108,8 +106,7 @@ function DisplayNetworkingConfig($type)
         'lte_interface',
         //'routeInfo',
         'lte_enabled',
-        'wired_mac',
-        'lte_mac'
+        'wired_mac'
     ));
 }
 

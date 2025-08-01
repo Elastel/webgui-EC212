@@ -16,7 +16,7 @@
   </div>
   <div class="row">
     <div class="form-group col-md-6">
-      <label for="txtapn"><?php echo _("APN"); ?></label>
+      <label for="txtapn"><?php echo _("APN (Linkspan=linkspan, Maxis=maxis4g, Telkomsel=internet)"); ?></label>
       <input type="text" id="txtapn" class="form-control" name="apn" value="" />
     </div>
   </div>
