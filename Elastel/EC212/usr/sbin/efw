@@ -112,7 +112,8 @@ add_rules() {
 	synflood_protect=$(uci get firewall.general.synflood_protect)
 	drop_invalid=$(uci get firewall.general.drop_invalid)
  
-  iptables-restore < /etc/iptables.conf
+	echo 1 > /proc/sys/net/ipv4/ip_forward
+  	iptables-restore < /etc/iptables.conf
 
 	iptables -A INPUT -i lo -j ACCEPT
 	iptables -A OUTPUT -o lo -j ACCEPT

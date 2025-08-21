@@ -17,6 +17,7 @@ fi
 
 /sbin/ifconfig eth0 up
 /sbin/ifconfig eth1 up
+/sbin/ifconfig br0 up $(uci get network.lan.ip)
 
 /sbin/modprobe option
 /sbin/modprobe tun
