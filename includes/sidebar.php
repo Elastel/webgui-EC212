@@ -4,7 +4,7 @@
         <hr class="sidebar-divider my-0">
         <div class="row">
             <div class="col-xs ml-3 sidebar-brand-icon">
-            <img src="app/img/<?php echo ( ($target != null && $target != 'EC211') ? "$hostname.php" : "elastel.php"); ?>" class="navbar-logo" width="200" height="50">
+            <img src="app/img/<?php echo getLogo($target, $hostname); ?>" class="navbar-logo" width="200" height="50">
             </div>
         </div>
         <li class="nav-item">
@@ -26,6 +26,9 @@
                             <li class="nav-item" name="wired" id="network_wan_wired"><a class="nav-link" href="wired_conf"><?php echo _("Wired"); ?></a></li>
                             <?php if (file_exists('/dev/ttyUSB1')) : ?>
                             <li class="nav-item" name="lte" id="network_wan_lte"><a class="nav-link" href="lte_conf"><?php echo _("LTE"); ?></a></li>
+                            <?php endif; ?>
+                            <?php if (isRunning('wpa_supplicant')) : ?>
+                            <li class="nav-item" name="wpa" id="network_wan_wpa"><a class="nav-link" href="wlan0_conf"><?php echo _("WiFi Client"); ?></a></li>
                             <?php endif; ?>
                         </ul>
                     </div>
@@ -70,6 +73,7 @@
                             <li class="nav-item" name="bacnet_client" id="dct_south_bacnet_client"><a class="nav-link" href="baccli_conf"><?php echo _("BACnet Rules"); ?></a></li>
                             <?php endif; ?>
                             <li class="nav-item" name="ethernetip" id="dct_south_ethernetip"><a class="nav-link" href="ethernetip_conf"><?php echo _("EtherNet/IP Rules"); ?></a></li>
+                            <li class="nav-item" name="mbus_client" id="dct_south_mbus_client"><a class="nav-link" href="mbuscli_conf"><?php echo _("Mbus Rules"); ?></a></li>
                             <?php if (isIoExistts()) : ?>
                             <li class="nav-item" name="io" id="dct_south_io"><a class="nav-link" href="io_conf"><?php echo _("IO"); ?></a></li>
                             <?php endif; ?>
@@ -158,6 +162,9 @@
                     <?php if(isBinExists("iotedge")) : ?>
                     <li class="nav-item" name="iotedge" id="services_iotedge"> <a class="nav-link" href="iotedge"><?php echo _("Azure IoT Edge"); ?></a></li>
                     <?php endif; ?>
+                    <?php if((isBinExists("pip3") || isBinExists("python3")) &&  file_exists('/etc/raspap/api/')): ?>
+                    <li class="nav-item" name="restapi" id="services_restapi"> <a class="nav-link" href="restapi"><?php echo _("RestAPI"); ?></a></li>
+                    <?php endif; ?>
                 </ul>
                 </div>
             </li>
@@ -176,13 +183,16 @@
                 <?php if(isBinExists("ttyd") || file_exists("/usr/local/bin/ttyd")) : ?>
                 <li class="nav-item" name="terminal" id="system_terminal"> <a class="nav-link" href="terminal"><?php echo _("Terminal"); ?></a></li>
                 <?php endif; ?>
+                <?php if(isBinExists("chromium-browser") && $target == 'EH607') : ?>
+                <li class="nav-item" name="hmi" id="system_hmi"> <a class="nav-link" href="hmi"><?php echo _("HMI"); ?></a></li>
+                <?php endif; ?>
                 <li class="nav-item" name="auth_conf" id="system_auth_conf"> <a class="nav-link" href="auth_conf"><?php echo _("Authentication"); ?></a></li>
                 <li class="nav-item" name="backup_restore" id="system_backup_restore"> <a class="nav-link" href="backup_restore"><?php echo _("Backup/Restore"); ?></a></li>
                 <li class="nav-item" name="backup_update" id="system_backup_update"> <a class="nav-link" href="backup_update"><?php echo _("Update/Restore"); ?></a></li>
             </ul>
             </div>
         </li>
-        <?php if ($target == null || $target == 'EC211') : ?>
+        <?php if ($target == null || $target == 'EC211' || $target == 'EH607') : ?>
         <li class="nav-item">
             <a class="nav-link" href="about"><i class="fas fa-info-circle fa-fw mr-2"></i><span class="nav-label"><?php echo _("About Elastel"); ?></a>
         </li>

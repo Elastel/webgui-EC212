@@ -601,7 +601,30 @@ function loadInterfaceWiredSelect(type) {
                 $('#username').show();
                 $('#password').show();
             }
-        } 
+        } else if (type == "wlan0") {
+            $('#wlan0_txtipaddress').val(jsonData.StaticIP);
+            $('#wlan0_txtsubnetmask').val(jsonData.SubnetMask);
+            $('#wlan0_txtgateway').val(jsonData.StaticRouters);
+            $('#wlan0_default-route').prop('checked', jsonData.DefaultRoute);
+            $('#wlan0_txtdns1').val(jsonData.StaticDNS1);
+            $('#wlan0_txtdns2').val(jsonData.StaticDNS2);
+            $('#wlan0_txtmetric').val(jsonData.Metric);
+
+            if (jsonData.StaticIP !== null && jsonData.StaticIP !== '') {
+                $('#wlan0_chkstatic').closest('.btn').button('toggle');
+                $('#wlan0_chkstatic').closest('.btn').button('toggle').blur();
+                $('#wlan0_chkstatic').blur();
+                $('#wlan0_chkfallback').prop('disabled', true);
+                $('#static_ip').show(); 
+            } else {
+                console.log(jsonData.StaticIP);
+                $('#wlan0_chkdhcp').closest('.btn').button('toggle');
+                $('#wlan0_chkdhcp').closest('.btn').button('toggle').blur();
+                $('#wlan0_chkdhcp').blur();
+                $('#wlan0_chkfallback').prop('disabled', false);
+                $('#static_ip').hide();
+            }
+        }
     });
 }
 
@@ -755,38 +778,94 @@ allow up to channel 11 as maximum channel on the 2.4Ghz WiFi band.
 Source: https://en.wikipedia.org/wiki/List_of_WLAN_channels
 Additional: https://git.kernel.org/pub/scm/linux/kernel/git/sforshee/wireless-regdb.git
 */
+// function loadChannelSelect(selected) {
+//     // Fetch wireless regulatory data
+//     $.getJSON("config/wireless.json", function(json) {
+//         var hw_mode = $('#cbxhwmode').val();
+//         var country_code = $('#cbxcountries').val();
+//         var channel_select = $('#cbxchannel');
+//         var data = json["wireless_regdb"];
+//         var selectablechannels = Array.range(1,14);
+
+//         // Assign array of countries to valid frequencies (channels)
+//         var countries_2_4Ghz_max11ch = data["2_4GHz_max11ch"].countries;
+//         var countries_2_4Ghz_max14ch = data["2_4GHz_max14ch"].countries;
+//         var countries_5Ghz_max48ch = data["5Ghz_max48ch"].countries;
+
+//         // Map selected hw_mode and country to determine channel list
+//         if (hw_mode === 'a') {
+//             selectablechannels = data["5Ghz_max48ch"].channels;
+//         } else if (($.inArray(country_code, countries_2_4Ghz_max11ch) !== -1) && (hw_mode !== 'ac') ) {
+//             selectablechannels = data["2_4GHz_max11ch"].channels;
+//         } else if (($.inArray(country_code, countries_2_4Ghz_max14ch) !== -1) && (hw_mode === 'b')) {
+//             selectablechannels = data["2_4GHz_max14ch"].channels;
+//         } else if (($.inArray(country_code, countries_5Ghz_max48ch) !== -1) && (hw_mode === 'ac')) {
+//             selectablechannels = data["5Ghz_max48ch"].channels;
+//         }
+
+//         // Set channel select with available values
+//         selected = (typeof selected === 'undefined') ? selectablechannels[0] : selected;
+//         channel_select.empty();
+//         $.each(selectablechannels, function(key,value) {
+//             channel_select.append($("<option></option>").attr("value", value).text(value));
+//         });
+//         channel_select.val(selected);
+//     });
+// }
+
 function loadChannelSelect(selected) {
-    // Fetch wireless regulatory data
-    $.getJSON("config/wireless.json", function(json) {
+    var iface = $('#cbxinterface').val();
+    var hwmodeText = '';
+    var csrfToken = $('meta[name=csrf_token]').attr('content');
+
+    // update hardware mode tooltip
+    // setHardwareModeTooltip();
+
+    $.post('ajax/networking/get_frequencies.php',{'interface': iface, 'csrf_token': csrfToken, 'selected': selected},function(response){
         var hw_mode = $('#cbxhwmode').val();
         var country_code = $('#cbxcountries').val();
         var channel_select = $('#cbxchannel');
-        var data = json["wireless_regdb"];
-        var selectablechannels = Array.range(1,14);
+        var btn_save = $('#btnSaveHostapd');
+        var data = JSON.parse(response);
+        var selectableChannels = [];
 
-        // Assign array of countries to valid frequencies (channels)
-        var countries_2_4Ghz_max11ch = data["2_4GHz_max11ch"].countries;
-        var countries_2_4Ghz_max14ch = data["2_4GHz_max14ch"].countries;
-        var countries_5Ghz_max48ch = data["5Ghz_max48ch"].countries;
+        console.log(data);
 
-        // Map selected hw_mode and country to determine channel list
+        // Map selected hw_mode to available channels
         if (hw_mode === 'a') {
-            selectablechannels = data["5Ghz_max48ch"].channels;
-        } else if (($.inArray(country_code, countries_2_4Ghz_max11ch) !== -1) && (hw_mode !== 'ac') ) {
-            selectablechannels = data["2_4GHz_max11ch"].channels;
-        } else if (($.inArray(country_code, countries_2_4Ghz_max14ch) !== -1) && (hw_mode === 'b')) {
-            selectablechannels = data["2_4GHz_max14ch"].channels;
-        } else if (($.inArray(country_code, countries_5Ghz_max48ch) !== -1) && (hw_mode === 'ac')) {
-            selectablechannels = data["5Ghz_max48ch"].channels;
+            selectableChannels = data.filter(item => item.MHz.toString().startsWith('5'));
+        } else if (hw_mode !== 'ac') {
+            selectableChannels = data.filter(item => item.MHz.toString().startsWith('24'));
+        } else if (hw_mode === 'b') {
+            selectableChannels = data.filter(item => item.MHz.toString().startsWith('24'));
+        } else if (hw_mode === 'ac') {
+            selectableChannels = data.filter(item => item.MHz.toString().startsWith('5'));
+        }
+
+        // If selected channel doeesn't exist in allowed channels, set default or null (unsupported)
+        if (!selectableChannels.find(item => item.Channel === selected)) {
+            if (selectableChannels.length === 0) {
+                selectableChannels[0] = { Channel: null };
+            } else {
+                defaultChannel = selectableChannels[0].Channel;
+                selected = defaultChannel
+            }
         }
 
         // Set channel select with available values
-        selected = (typeof selected === 'undefined') ? selectablechannels[0] : selected;
         channel_select.empty();
-        $.each(selectablechannels, function(key,value) {
-            channel_select.append($("<option></option>").attr("value", value).text(value));
-        });
-        channel_select.val(selected);
+        if (selectableChannels[0].Channel === null) {
+            channel_select.append($("<option></option>").attr("value", "").text("---"));
+            channel_select.prop("disabled", true);
+            btn_save.prop("disabled", true);
+        } else {
+            channel_select.prop("disabled", false);
+            btn_save.prop("disabled", false);
+            $.each(selectableChannels, function(key,value) {
+                channel_select.append($("<option></option>").attr("value", value.Channel).text(value.Channel));
+            });
+            channel_select.val(selected);
+        }
     });
 }
 
@@ -1555,6 +1634,9 @@ function contentLoaded() {
         case "lte_conf":
             loadInterfaceWiredSelect("lte");
             break;
+        case "wlan0_conf":
+            loadInterfaceWiredSelect("wlan0");
+            break;
         case "hostapd_conf":
             loadChannel();
             break;
@@ -1568,39 +1650,22 @@ function contentLoaded() {
             loadInterfacesConfig();
             break;
         case "modbus_conf":
-            loadModbusConfig();
-            break;
         case "ascii_conf":
-            loadAsciiConfig();
-            break;
         case "s7_conf":
-            loadS7Config();
-            break;
 		case "fx_conf":
-            loadFxConfig();
-            break;
         case "mc_conf":
-            loadMcConfig();
-            break;
         case "iec104_conf":
-            loadIec104Config();
+        case "opcuacli_conf":
+        case "baccli_conf":
+        case "dnp3cli_conf":
+        case "ethernetip_conf":
+        case "mbuscli_conf":
+            loadRulesConfig(pageCurrent.split('_')[0]);
             break;
         case "io_conf":
-            loadADCConfig();
-            loadDIConfig();
-            loadDOConfig();
-            break;
-        case "opcuacli_conf":
-            loadOpcuaClientConfig();
-            break;
-        case "baccli_conf":
-            loadBACnetClientConfig();
-            break;
-        case "dnp3cli_conf":
-            loadDnp3ClientConfig();
-            break;
-        case "ethernetip_conf":
-            loadEthernetipConfig();
+            loadRulesConfig('adc');
+            loadRulesConfig('di');
+            loadRulesConfig('do');
             break;
         case "server_conf":
             loadServerConfig();

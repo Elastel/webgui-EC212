@@ -33,7 +33,7 @@
                   array("name"=>"Belonged Interface",   "style"=>"", "descr"=>"", "ctl"=>"select"),
                   array("name"=>"Tag Name",             "style"=>"", "descr"=>"", "ctl"=>"input"),
                   array("name"=>"Group ID",             "style"=>"", "descr"=>"", "ctl"=>"select"),
-                  array("name"=>"Index Number",     "style"=>"", "descr"=>"0~100", "ctl"=>"input"),
+                  array("name"=>"Number of Points",     "style"=>"", "descr"=>"0~100", "ctl"=>"input"),
                   array("name"=>"Reporting Center",     "style"=>"", "descr"=>"Multiple Servers Are Separated By Minus", "ctl"=>"input"),
                   array("name"=>"Operator",             "style"=>"display:none", "descr"=>"0 + - * /", "ctl"=>"select"),
                   array("name"=>"Operation Expression", "style"=>"display:none", "descr"=>"", "ctl"=>"input"),
@@ -84,7 +84,7 @@
                       'ANALOG_INPUT' => 'ANALOG_INPUT', 'ANALOG_OUTPUTS' => 'ANALOG_OUTPUTS'];
       SelectControlCustom(_('Group ID'), $table_name.'.group_id', $group_id_list, $group_id_list['ANALOG_INPUT'], $table_name.'.group_id');
 
-      InputControlCustom(_('Index Number'), $table_name.'.point_number', $table_name.'.point_number', '0~100');
+      InputControlCustom(_('Number of Points'), $table_name.'.point_number', $table_name.'.point_number', '0~100');
 
       InputControlCustom(_('Reporting Center'), $table_name.'.server_center', $table_name.'.server_center', _('Multiple Servers Are Separated By Minus'));
 

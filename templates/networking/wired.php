@@ -3,7 +3,7 @@
   <h4 class="mt-3"><?php echo _("Wired settings"); ?></h4>
   <div class="row">
     <div class="form-group col-md-6">
-      <label for="code">Interface</label>
+      <label for="code"><?php echo _("Interface") ;?></label>
         <?php SelectorOptions('interface0', $wired_interface, null, 'cbxdhcpiface', 'loadInterfaceDHCPSelect', null); ?>
     </div>
   </div>
