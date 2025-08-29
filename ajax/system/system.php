@@ -11,18 +11,18 @@ if ($type == "node_online_update") {
     if ($network_status[0] != 'none')
       exec('sudo git fetch origin');
 
-    exec('cat /var/www/html/.git/refs/remotes/origin/EG-develop', $new_node);
+    exec('cat /var/www/html/.git/refs/remotes/origin/$(git branch --show-current)', $new_node);
     $data['new_node'] = $new_node[0];
 
-    exec('cat /var/www/html/.git/refs/heads/EG-develop', $cur_node);
+    exec('cat /var/www/html/.git/refs/heads/$(git branch --show-current)', $cur_node);
     $data['cur_node'] = $cur_node[0];
 } else if ($type == "update_node") {
     exec('cd /var/www/html; sudo git checkout *');
     if ($network_status[0] != 'none') {
-        exec('sudo git pull origin EG-develop');
+        exec('sudo git pull origin $(git branch --show-current)');
         // check current node update
-        exec('cat /var/www/html/.git/refs/remotes/origin/EG-develop', $new_node);
-        exec('cat /var/www/html/.git/refs/heads/EG-develop', $cur_node);
+        exec('cat /var/www/html/.git/refs/remotes/origin/$(git branch --show-current)', $new_node);
+        exec('cat /var/www/html/.git/refs/heads/$(git branch --show-current)', $cur_node);
         if ($new_node[0] == $cur_node[0]) {
             exec('sudo git checkout *; sudo /var/www/html/update 2>&1', $info);
             $data['log'] = $info[0];
