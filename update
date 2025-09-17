@@ -56,6 +56,19 @@ install_package_if_needed() {
         fi
 }
 
+install_lib_if_needed() {
+        local lib="$1"
+        local pkg="$2"
+
+        if ! ldconfig -p | grep -q "$lib"; then
+                echo "$lib is NOT installed, installing $pkg ..."
+                apt-get install -y "$pkg" || {
+                        echo "Failed to install $pkg."
+                        exit 4
+                }
+        fi
+}
+
 iotedge_package_check() {
         if ! command -v "iotedge" >/dev/null 2>&1; then
                 echo "iotedge is NOT installed!"
@@ -140,11 +153,14 @@ reset_configuration() {
                 rm /etc/localtime && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
         fi
 
-        if [[ $model == "EC212" ]]; then
+        if [[ $model == "EC212" || $model == "EG410" ]]; then
                 # set lan
                 cp $path/config/dhcpcd-eth0.conf /etc/dhcpcd.conf
                 uci set network.wan.wan_multi='1'
                 uci commit network
+		if [[ $model == "EG410" ]]; then
+			cp /var/www/html/config/raspap-br0-member-eth0.network /etc/systemd/network/
+		fi
         fi
 
         ssid="$target"_"$sub_mac"
@@ -186,9 +202,11 @@ if [[ $model != "EG324L" && $model != "EC212" ]]; then
         fi
 fi
 
-if [[ $model == "EG500" || $model == "EG410" || $model == "ElastBox400" ]]; then
+if [[ $model == "EG500" || $model == "EG410" || $model == "ElastBox400" || $model == "EG324" ]]; then
         install_package_if_needed "openvpn" "openvpn"
         install_package_if_needed "wireguard" "wg"
+        install_package_if_needed  "snmp" "snmpget" 
+        install_lib_if_needed "libsnmp.so" "libsnmp-dev"
 
         systemctl stop nftables.service
         systemctl disable nftables.service

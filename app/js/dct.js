@@ -63,7 +63,7 @@ function writeValueByTag(object) {
     }
 
     const input = document.createElement('input');
-    input.type = 'number';
+    // input.type = 'number';
     input.style.display = 'block';
     input.style.marginBottom = '10px';
     input.style.width = '60%';
@@ -378,6 +378,49 @@ function comProtocolChange(num) {
     }
 }
 
+function snmpVersionChangeTcp(num) {
+    var numStr = num.toString();
+    var selectElement = document.getElementById('snmp_version' + numStr);
+    if (!selectElement.value) {
+        selectElement.value = "0";
+        selectElement.dispatchEvent(new Event('change'));
+        return;
+    }
+    var selectedOption = selectElement.options[selectElement.selectedIndex];
+    var selectedText = selectedOption.text;
+
+    if (selectedText == 'SNMPv3') {
+        $('#tcp_page_snmpv2' + numStr).hide();
+        $('#tcp_page_snmpv3' + numStr).show();
+    } else {
+        $('#tcp_page_snmpv3' + numStr).hide();
+        $('#tcp_page_snmpv2' + numStr).show();
+    }
+}
+
+function securityLevelChangeTcp(num) {
+    var numStr = num.toString();
+    var selectElement = document.getElementById('security_level' + numStr);
+    if (!selectElement.value) {
+        selectElement.value = "0";
+        selectElement.dispatchEvent(new Event('change'));
+        return;
+    }
+    var selectedOption = selectElement.options[selectElement.selectedIndex];
+    var selectedText = selectedOption.text;
+
+    if (selectedText == 'noAuthNoPriv') {
+        $('#page_snmpv3_auth' + numStr).hide();
+        $('#page_snmpv3_privacy' + numStr).hide();
+    } else if (selectedText == 'authNoPriv') {
+        $('#page_snmpv3_auth' + numStr).show();
+        $('#page_snmpv3_privacy' + numStr).hide();
+    } else {
+        $('#page_snmpv3_auth' + numStr).show();
+        $('#page_snmpv3_privacy' + numStr).show();
+    }
+}
+
 function tcpProtocolChange(num) {
     var numStr = num.toString();
     var selectElement = document.getElementById('tcp_proto' + numStr);
@@ -391,6 +434,7 @@ function tcpProtocolChange(num) {
     $('#tcp_page_protocol_opcua' + numStr).hide();
     $('#tcp_page_protocol_dnp3' + numStr).hide();
     $('#tcp_page_protocol_bacnet' + numStr).hide();
+    $('#tcp_page_protocol_snmp' + numStr).hide();
 
     if (selectedText == 'Transparent') {
         $('#tcp_page_protocol_transparent' + numStr).show();
@@ -406,6 +450,10 @@ function tcpProtocolChange(num) {
         $('#tcp_page_protocol_dnp3' + numStr).show();
     } else if (selectedText == 'BACnet/IP') {
         $('#tcp_page_protocol_bacnet' + numStr).show();
+    } else if (selectedText == 'SNMP') {
+        $('#tcp_page_protocol_snmp' + numStr).show();
+        snmpVersionChangeTcp(num);
+        securityLevelChangeTcp(num);
     }
 }
 
@@ -524,11 +572,37 @@ function selectReportType(table_name) {
     }
 }
 
+function get_data_type_value(table_name) {
+    var data_type_value = [];
+
+    if (table_name == 'modbus' || table_name == 'modbus_slave_point') {
+        data_type_value = ['Bit', 'Unsigned 16Bits AB', 'Unsigned 16Bits BA', 'Signed 16Bits AB', 'Signed 16Bits BA',
+        'Unsigned 32Bits ABCD', 'Unsigned 32Bits BADC', 'Unsigned 32Bits CDAB', 'Unsigned 32Bits DCBA',
+        'Signed 32Bits ABCD', 'Signed 32Bits BADC', 'Signed 32Bits CDAB', 'Signed 32Bits DCBA',
+        'Float ABCD', 'Float BADC', 'Float CDAB', 'Float DCBA'];
+    } else if (table_name == 'fx') {
+        data_type_value = ['Bit', 'Byte', 'Word', 'DWord', 'Real'];
+    } else if (table_name == 's7') {
+        data_type_value = ['Bit', 'Byte', 'Word', 'DWord', 'Real', 'Counter', 'Timer'];
+    } else if (table_name == 'mc' || table_name == 'iec104') {
+        data_type_value = ['Bit', 'Int', 'Float'];
+    } else if (table_name == 'opcuacli') {
+        data_type_value = ['Bool', 'Byte', 'Int16', 'UInt16', 'Int32', 'UInt32', 'Float', 'String'];
+    } else if (table_name == 'ethernetip') {
+        data_type_value = ['Bool', 'Int16', 'UInt16', 'Int32', 'UInt32', 'Int64', 'UInt64', 'Float', 'Double', 'String'];
+    } else if (table_name == 'snmpcli') {
+        data_type_value = ['Int32', 'UInt32', 'Counter64', 'String'];
+    } else if (table_name == 'mbuscli') {
+        data_type_value = ['Double', 'String'];
+    }
+
+    return data_type_value;
+}
+
 function addSectionTable(table_name, jsonData, option_list) {
     var mode = 0;
     var data_type_value = [];
     var reg_type_value = [];
-    var word_len_value = [];
     var cap_type_value = ['4-20mA', '0-10V'];
     var mode_value = ['Counting Mode', 'Status Mode'];
     var count_method_value = ['Rising Edge', 'Falling Edge'];
@@ -543,24 +617,13 @@ function addSectionTable(table_name, jsonData, option_list) {
     if (jsonData == null)
         return;
 
-    if (table_name == 'modbus' || table_name == 'modbus_slave_point') {
-        data_type_value = ['Bit', 'Unsigned 16Bits AB', 'Unsigned 16Bits BA', 'Signed 16Bits AB', 'Signed 16Bits BA',
-        'Unsigned 32Bits ABCD', 'Unsigned 32Bits BADC', 'Unsigned 32Bits CDAB', 'Unsigned 32Bits DCBA',
-        'Signed 32Bits ABCD', 'Signed 32Bits BADC', 'Signed 32Bits CDAB', 'Signed 32Bits DCBA',
-        'Float ABCD', 'Float BADC', 'Float CDAB', 'Float DCBA'];
-    } else if (table_name == 'fx') {
-        data_type_value = ['Bit', 'Byte', 'Word', 'DWord', 'Real'];
+    if (table_name == 'fx') {
         reg_type_value = ['X', 'Y', 'M', 'S', 'D'];
     } else if (table_name == 's7') {
         reg_type_value = ['I', 'Q', 'M', 'DB', 'V', 'C', 'T'];
-        word_len_value = ['Bit', 'Byte', 'Word', 'DWord', 'Real', 'Counter', 'Timer'];
-    } else if (table_name == 'mc' || table_name == 'iec104') {
-        data_type_value = ['Bit', 'Int', 'Float'];
-    } else if (table_name == 'opcuacli') {
-        data_type_value = ['Bool', 'Byte', 'Int16', 'UInt16', 'Int32', 'UInt32', 'Float', 'String'];
-    } else if (table_name == 'ethernetip') {
-        data_type_value = ['Bool', 'Int16', 'UInt16', 'Int32', 'UInt32', 'Int64', 'UInt64', 'Float', 'Double', 'String'];
     }
+
+    data_type_value = get_data_type_value(table_name);
     
     var len = Number(jsonData.length);
     for (var i = 0; i < len; i++) {
@@ -608,7 +671,7 @@ function addSectionTable(table_name, jsonData, option_list) {
             } else if (key == 'reg_type') {
                 contents += '   <td style="text-align:center" name="'+key+'">'+ (reg_type_value[Number(jsonData[i][key])]) +'</td>\n';
             } else if (key == 'word_len') {
-                contents += '   <td style="text-align:center" name="'+key+'">'+ (word_len_value[Number(jsonData[i][key])]) +'</td>\n';
+                contents += '   <td style="text-align:center" name="'+key+'">'+ (data_type_value[Number(jsonData[i][key])]) +'</td>\n';
             } else if (key == 'cap_type') {
                 contents += '   <td style="text-align:center" name="'+key+'">'+ (cap_type_value[Number(jsonData[i][key])]) +'</td>\n';
             } else if (key == 'mode') {
@@ -712,6 +775,7 @@ function loadRealtimeData() {
 function loadRulesConfig(table_name) {
     $('#loading').show();
     $.get('ajax/dct/get_dctcfg.php?type=' + table_name,function(data){
+        // console.log(data);
         var jsonData = JSON.parse(data);
         if (jsonData == null)
             return;
@@ -719,10 +783,109 @@ function loadRulesConfig(table_name) {
         var option_list = jsonData.option;
         var tmpData = JSON.parse(jsonData[table_name]);
         addSectionTable(table_name, tmpData, option_list);
+        $('#loading').hide();
     });
 
     loadRealtimeData();
-    $('#loading').hide();
+}
+
+function snmpScan() {
+    $('#loading').show();
+    const btn = document.getElementById("btn_scan"); // 获取按钮对象
+    btn.disabled = true;
+    const interface = document.getElementById('scan_interface').value;
+    const oid = document.getElementById('scan_oid').value;
+    $.get('ajax/dct/get_dctcfg.php?type=snmp_scan&interface=' + interface + '&oid=' + oid, function(data) {
+        // console.log(data);
+        $('#snmp_result_area').val(data);
+        $('#loading').hide();
+        btn.disabled = false;
+    })
+}
+
+function parseMBusXML(xmlString) {
+  const parser = new DOMParser();
+  const xmlDoc = parser.parseFromString(xmlString, "application/xml");
+
+  // 提取 SlaveInformation
+  const slaveInfo = {};
+  const infoNode = xmlDoc.querySelector("SlaveInformation");
+  if (infoNode) {
+    infoNode.childNodes.forEach(node => {
+      if (node.nodeType === 1) {
+        slaveInfo[node.nodeName] = node.textContent;
+      }
+    });
+  }
+
+  // 提取 DataRecord
+  const records = [];
+  xmlDoc.querySelectorAll("DataRecord").forEach(rec => {
+    const obj = { id: rec.getAttribute("id") }; // 保存id
+    rec.childNodes.forEach(node => {
+      if (node.nodeType === 1) {
+        obj[node.nodeName] = node.textContent.trim();
+      }
+    });
+    records.push(obj);
+  });
+
+  return { slaveInfo, records };
+}
+
+function formatValue(value, unit) {
+  if (value === null || value === undefined || value.trim() === "") {
+    return "";
+  }
+
+  let num = Number(value);
+  if (isNaN(num)) return value;
+
+  if (unit && unit.trim() !== "" && unit !== "-") {
+    return num.toFixed(6).replace(/\.?0+$/, "");
+  } else {
+    return Math.floor(num).toString();
+  }
+}
+
+function mbusScan() {
+    $('#loading').show();
+    const btn = document.getElementById("btn_scan"); // 获取按钮对象
+    btn.disabled = true;
+    document.getElementById("output").innerHTML = "";
+    const interface = document.getElementById('scan_interface').value;
+    const address = document.getElementById('scan_address').value;
+    $.get('ajax/dct/get_dctcfg.php?type=mbus_scan&interface=' + interface + '&address=' + address, function(data) {
+        let isXml = data.trim().startsWith('<') && data.trim().endsWith('>');
+        const output = document.getElementById("output");
+        if (isXml) {
+            const { slaveInfo, records } = parseMBusXML(data);
+            let html = "";
+
+            // Slave Information
+            html += `<div class="section"><div class="title">Slave Information</div>`;
+            html += `<table><tbody>`;
+            for (const key in slaveInfo) {
+                html += `<tr><th>${key}</th><td>${slaveInfo[key]}</td></tr>`;
+            }
+            html += `</tbody></table></div>`;
+
+            // Data Records
+            html += `<div class="section"><div class="title">Data Records</div>`;
+            html += `<table><thead><tr><th>ID</th><th>Quantity</th><th>Value</th><th>Unit</th></tr></thead><tbody>`;
+            records.forEach(rec => {
+                const valueText = formatValue(rec.Value, rec.Unit);
+                html += `<tr><td>${rec.id}</td><td>${rec.Quantity}</td><td>${valueText}</td><td>${rec.Unit}</td></tr>`;
+            });
+            html += `</tbody></table></div>`;
+
+            output.innerHTML = html;
+        } else {
+            output.innerHTML = '<span style="color:red;">' + data + '</span>';
+        }
+        $('#loading').hide();
+        btn.disabled = false;
+    })
 }
 
 function get_bacnet_server_discover(callback) {
@@ -1449,7 +1612,6 @@ function findKey (data, value, compare = (a, b) => a === b) {
 function get_table_data(table_name, option_list) {
     var data_type_value = [];
     var reg_type_value = [];
-    var word_len_value = [];
     var cap_type_value = ['4-20mA', '0-10V'];
     var mode_value = ['Counting Mode', 'Status Mode'];
     var count_method_value = ['Rising Edge', 'Falling Edge'];
@@ -1458,24 +1620,13 @@ function get_table_data(table_name, option_list) {
     '7':'M_BO_NA_1', '33':'M_BO_TB_1', '9':'M_ME_NA_1', '34':'M_ME_TD_1', '21':'M_ME_ND_1', '11':'M_ME_NB_1', '35':'M_ME_TE_1', '13':'M_ME_NC_1', 
     '36':'M_ME_TF_1', '15':'M_IT_NA_1', '37':'M_IT_TB_1', '38':'M_EP_TD_1'};
 
-    if (table_name == 'modbus' || table_name == 'modbus_slave_point') {
-        data_type_value = ['Bit', 'Unsigned 16Bits AB', 'Unsigned 16Bits BA', 'Signed 16Bits AB', 'Signed 16Bits BA',
-        'Unsigned 32Bits ABCD', 'Unsigned 32Bits BADC', 'Unsigned 32Bits CDAB', 'Unsigned 32Bits DCBA',
-        'Signed 32Bits ABCD', 'Signed 32Bits BADC', 'Signed 32Bits CDAB', 'Signed 32Bits DCBA',
-        'Float ABCD', 'Float BADC', 'Float CDAB', 'Float DCBA'];
-    } else if (table_name == 'fx') {
-        data_type_value = ['Bit', 'Byte', 'Word', 'DWord', 'Real'];
+    if (table_name == 'fx') {
         reg_type_value = ['X', 'Y', 'M', 'S', 'D'];
     } else if (table_name == 's7') {
         reg_type_value = ['I', 'Q', 'M', 'DB', 'V', 'C', 'T'];
-        word_len_value = ['Bit', 'Byte', 'Word', 'DWord', 'Real', 'Counter', 'Timer'];
-    } else if (table_name == 'mc' || table_name == 'iec104') {
-        data_type_value = ['Bit', 'Int', 'Float'];
-    } else if (table_name == 'opcuacli') {
-        data_type_value = ['Bool', 'Byte', 'Int16', 'UInt16', 'Int32', 'UInt32', 'Float', 'String'];
-    } else if (table_name == 'ethernetip') {
-        data_type_value = ['Bool', 'Int16', 'UInt16', 'Int32', 'UInt32', 'Int64', 'UInt64', 'Float', 'Double', 'String'];
     }
+
+    data_type_value = get_data_type_value(table_name);
 
     var tr = $('#table_' + table_name + ' tr');
     var result = [];
@@ -1498,7 +1649,7 @@ function get_table_data(table_name, option_list) {
                 } else if (option == 'reg_type') {
                     tmp += '"' + option + '":"' + reg_type_value.indexOf(val) + '",';
                 } else if (option == 'word_len') {
-                    tmp += '"' + option + '":"' + word_len_value.indexOf(val) + '",';
+                    tmp += '"' + option + '":"' + data_type_value.indexOf(val) + '",';
                 } else if (option == 'cap_type') {
                     tmp += '"' + option + '":"' + cap_type_value.indexOf(val) + '",';
                 } else if (option == 'mode') {
@@ -1536,7 +1687,6 @@ function saveData(table_name) {
     var io_type;
     var data_type_value = [];
     var reg_type_value = [];
-    var word_len_value = [];
     var cap_type_value = ['4-20mA', '0-10V'];
     var mode_value = ['Counting Mode', 'Status Mode'];
     var count_method_value = ['Rising Edge', 'Falling Edge'];
@@ -1545,24 +1695,13 @@ function saveData(table_name) {
     '7':'M_BO_NA_1', '33':'M_BO_TB_1', '9':'M_ME_NA_1', '34':'M_ME_TD_1', '21':'M_ME_ND_1', '11':'M_ME_NB_1', '35':'M_ME_TE_1', '13':'M_ME_NC_1', 
     '36':'M_ME_TF_1', '15':'M_IT_NA_1', '37':'M_IT_TB_1', '38':'M_EP_TD_1'};
 
-    if (table_name == 'modbus' || table_name == 'modbus_slave_point') {
-        data_type_value = ['Bit', 'Unsigned 16Bits AB', 'Unsigned 16Bits BA', 'Signed 16Bits AB', 'Signed 16Bits BA',
-        'Unsigned 32Bits ABCD', 'Unsigned 32Bits BADC', 'Unsigned 32Bits CDAB', 'Unsigned 32Bits DCBA',
-        'Signed 32Bits ABCD', 'Signed 32Bits BADC', 'Signed 32Bits CDAB', 'Signed 32Bits DCBA',
-        'Float ABCD', 'Float BADC', 'Float CDAB', 'Float DCBA'];
-    } else if (table_name == 'fx') {
-        data_type_value = ['Bit', 'Byte', 'Word', 'DWord', 'Real'];
+    if (table_name == 'fx') {
         reg_type_value = ['X', 'Y', 'M', 'S', 'D'];
     } else if (table_name == 's7') {
         reg_type_value = ['I', 'Q', 'M', 'DB', 'V', 'C', 'T'];
-        word_len_value = ['Bit', 'Byte', 'Word', 'DWord', 'Real', 'Counter', 'Timer'];
-    } else if (table_name == 'mc' || table_name == 'iec104') {
-        data_type_value = ['Bit', 'Int', 'Float'];
-    } else if (table_name == 'opcuacli') {
-        data_type_value = ['Bool', 'Byte', 'Int16', 'UInt16', 'Int32', 'UInt32', 'Float', 'String'];
-    } else if (table_name == 'ethernetip') {
-        data_type_value = ['Bool', 'Int16', 'UInt16', 'Int32', 'UInt32', 'Int64', 'UInt64', 'Float', 'Double', 'String'];
     }
+
+    data_type_value = get_data_type_value(table_name);
 
     var page_type = document.getElementById("page_type").value;
     var tmp = $('#option_list_'+table_name).val();
@@ -1583,7 +1722,7 @@ function saveData(table_name) {
         } else if (option == 'reg_type') {
             option_value[option] = reg_type_value[Number(document.getElementById(table_name + '.'  + option).value)];
         } else if (option == 'word_len') {
-            option_value[option] = word_len_value[Number(document.getElementById(table_name + '.'  + option).value)];
+            option_value[option] = data_type_value[Number(document.getElementById(table_name + '.'  + option).value)];
         } else if (option == 'cap_type') {
             option_value[option] = cap_type_value[Number(document.getElementById(table_name + '.'  + option).value)];
         } else if (option == 'mode') {
