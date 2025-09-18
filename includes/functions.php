@@ -765,6 +765,30 @@ function get_public_ip()
     return $public_ip[0];
 }
 
+function getFavicon($target, $hostname)
+{
+    $name='';
+    if ($target != null && file_exists('/var/www/html/app/icons/'.$hostname.'_favicon.png')) {
+        $name = $hostname . "_favicon.png";
+    } else {
+        $name = "favicon.png";
+    }
+
+    return $name;
+}
+
+function getLogo($target, $hostname)
+{
+    $name='';
+    if ($target != null && file_exists('/var/www/html/app/img/'.$hostname.'.php')) {
+        $name = $hostname . ".php";
+    } else {
+        $name = "elastel.php";
+    }
+
+    return $name;
+}
+
 function getModel()
 {
     exec('cat /etc/fw_model', $model);
@@ -785,6 +809,12 @@ function isBinExists($name)
     } else {
         return true;
     }
+}
+
+function isRunning($name)
+{
+    exec("pgrep -x $name", $output);
+    return !empty($output);
 }
 
 function isIoExistts()
@@ -849,6 +879,24 @@ function isIoExistts()
     }
 }
 
+function get_serial_device_list()
+{
+    $comlist = array();
+    $model = getModel();
+
+    if ($model == "EG324") {
+        $comlist = array('/dev/ttyAMA0'=>'COM1', '/dev/ttyAMA1'=>'COM2', '/dev/ttyAMA2'=>'COM3', '/dev/ttyAMA3'=>'COM4');
+    } else if ($model == "EG324L") {
+        $comlist = array('/dev/ttyS1'=>'COM1', '/dev/ttyS2'=>'COM2', '/dev/ttyS3'=>'COM3', '/dev/ttyS4'=>'COM4');
+    } else if ($model == "EC212") {
+        $comlist = array('/dev/ttyS1'=>'COM1', '/dev/ttyS2'=>'COM2');
+    } else {
+        $comlist = array('/dev/ttyACM0'=>'COM1', '/dev/ttyACM1'=>'COM2');
+    }
+
+    return $comlist;
+}
+
 function getBetweenStrings($src, $string)
 {
     $tmp = strstr($src, $string);
@@ -887,6 +935,50 @@ function validateInterface($interface)
     return in_array($interface, $valid_interfaces, true);
 }
 
+function setMetricByIface($iface, $metric)
+{
+    $keyword = 'ElastPro';
+    $orgin_str = file_get_contents(RASPI_DHCPCD_CONFIG);
+    if (strpos($orgin_str, $keyword) == false) {
+        $keyword = 'RaspAP';
+    }
+    
+    $cfg[] = "# $keyword ".$iface.' configuration';
+    $cfg[] = 'interface '.$iface;
+
+    if ($_POST[$head.'Metric'] !== '') {
+      $cfg[] = 'metric '.$metric;
+    }
+
+    $dhcp_cfg = rtrim($orgin_str) . PHP_EOL;
+    
+    if (!preg_match('/^interface\s'.$iface.'$/m', $dhcp_cfg)) {
+        $cfg = join(PHP_EOL, $cfg) . PHP_EOL;
+        $dhcp_cfg .= $cfg;
+    } else {
+        $cfg = join(PHP_EOL, $cfg) . PHP_EOL;
+        $pattern = "/^#\s$keyword\s" . preg_quote($iface, '/') . "\sconfiguration.*?(?=^#\s$keyword\s|\z)/ms";
+        if (preg_match($pattern, $dhcp_cfg)) {
+            $dhcp_cfg = preg_replace($pattern, $cfg, $dhcp_cfg, 1);
+        }
+    }
+    file_put_contents('/tmp/dhcpddata', $dhcp_cfg);
+    system('sudo cp /tmp/dhcpddata '.RASPI_DHCPCD_CONFIG);
+}
+
+function get_default_route_metric($iface) {
+    $output = [];
+    exec("ip route show default dev " . escapeshellarg($iface), $output);
+
+    foreach ($output as $line) {
+        if (preg_match('/\bmetric\s+(\d+)/', $line, $matches)) {
+            return (int)$matches[1];
+        }
+    }
+
+    return 200;
+}
+
 function switchWifiMode($enabled)
 {
     $model = getModel();
@@ -922,6 +1014,7 @@ function switchWifiMode($enabled)
     } else {
         if ($enabled == 1) {
             // switch to sta mode
+            setMetricByIface('wlan0', get_default_route_metric('eth0') + 1);
             exec("sudo systemctl stop hostapd.service; sudo systemctl mask hostapd.service; sleep 1; sudo systemctl disable hostapd.service; sudo brctl delif br0 wlan0");
             exec("sudo systemctl restart dhcpcd.service; sudo systemctl restart dnsmasq.service");
             $cmd = "sudo wpa_supplicant -B -Dnl80211 -c/etc/wpa_supplicant/wpa_supplicant.conf -i". $_SESSION['wifi_client_interface'];
@@ -953,6 +1046,9 @@ function handlePageActions($extraFooterScripts, $page)
             break;
         case "/lte_conf":
             DisplayNetworkingConfig('lte');
+            break;
+        case "/wlan0_conf":
+            DisplayNetworkingConfig('wlan0');
             break;
         case "/hostapd_conf":
             DisplayHostAPDConfig();
@@ -1068,6 +1164,12 @@ function handlePageActions($extraFooterScripts, $page)
         case "/ethernetip_conf":
             DisplayEthernetip();
             break;
+        case "/mbuscli_conf":
+            DisplayMbusClient();
+            break;
+        case "/snmpcli_conf":
+            DisplaySnmpClient();
+            break;
         case "/nodered":
             DisplayNodered();
             break;
@@ -1092,8 +1194,14 @@ function handlePageActions($extraFooterScripts, $page)
         case "/iotedge":
             DisplayIotedge();
             break;
+        case "/hmi":
+            DisplayHmi();
+            break;
         case "/login":
             DisplayLogin();
+            break;
+        case "/restapi":
+            DisplayRestapi();
             break;
         case "/logout":
             $auth = new \ElastPro\Auth\HTTPAuth();

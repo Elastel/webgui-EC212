@@ -18,7 +18,7 @@ class HTTPAuth
      */
     private $auth_default = array(
         'admin_user' => 'admin',
-        'admin_pass' => '$2y$10$.I8ji57GDlWHu6aWklGWZuTe57g980zelhV9VlYFyQfZ.eLd4b2/2'
+        'admin_pass' => '$2y$10$QuNEMIPFnaqIDE0kun8imOQInb9SsAPnOZsUsTbDzp.2h9aNdeWxm'
     );
 
     // Constructor

@@ -8,7 +8,7 @@
           <div class="col-12">
             <!-- branding -->
             <div class="text-center mb-3">
-              <img src="app/img/<?php echo (($target != null) ? ($hostname . ".png") : "elastel.png"); ?>" class="navbar-logo" alt="Elastel logo" class="img-fluid" style="width: 20rem;">
+              <img src="app/img/DAXView.png" class="navbar-logo" alt="logo" class="img-fluid" style="width: 20rem;">
               <div class="mt-2 admin-login"><?php echo _("Administrator login") ?></div>
               <div class="text-center text-danger mt-1 mb-3"><?php echo $status ?></div>
             </div>

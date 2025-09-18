@@ -92,6 +92,7 @@ body {
 
 .nav-item {
   font-size: 0.85rem;
+  max-width: 100%;
 }
 
 .nav-tabs .nav-link.active,
@@ -109,6 +110,7 @@ a.nav-link.active {
 
 .sidebar .nav-item .nav-link {
   padding: 0.6rem 0.6rem 0.6rem 1.0rem;
+  max-width: 100%;
 }
 
 .alert-success {
@@ -643,4 +645,37 @@ canvas#divDBChartBandwidthhourly {
   max-height: 35rem;
   overflow-y: auto;
   height: auto;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+    width: 200px;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    width: 20rem;
+    max-height: 150px;
+    overflow-y: auto;
+    left: 18.8rem
+}
+
+.dropdown-content div {
+    padding: 10px;
+    cursor: pointer;
+}
+
+.dropdown-content div:hover {
+    background-color: #f1f1f1;
+}
+
+.show {
+    display: block;
 }
