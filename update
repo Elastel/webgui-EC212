@@ -10,6 +10,25 @@ model=${model:-"EG500"}
 target=${target:-$model}
 echo model:$model
 
+restapi=0
+reset=0
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --restapi)
+            restapi=1
+            shift
+            ;;
+        reset)
+            reset=1
+            shift
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
+
 update_python_version() {
         CURRENT_VER=$(python3 -V 2>&1 | awk '{print $2}')
         echo "Python3 version: $CURRENT_VER"
@@ -169,38 +188,59 @@ reset_configuration() {
         sync
 }
 
+set_immutable_if_needed() {
+    local FILE="$1"
+
+    if [ -z "$FILE" ]; then
+        return 1
+    fi
+
+    if [ ! -e "$FILE" ]; then
+        return 1
+    fi
+
+    if ! lsattr "$FILE" 2>/dev/null | grep -q 'i'; then
+        sudo chattr +i "$FILE"
+    fi
+}
+
 # restapi init
-if [[ $model != "EG324L" && $model != "EC212" ]]; then
-        update_python_version
-        systemctl stop restapi.service
+if [[ $restapi -eq 1 ]]; then
+        if [[ $model != "EG324L" && $model != "EC212" ]]; then
+                update_python_version
+                systemctl stop restapi.service
 
-        if ! command -v pip3 >/dev/null 2>&1; then
-                echo "pip3 is NOT installed! Installing..."
-                apt-get update
-                apt-get install -y python3-pip
-        else
-                echo "pip3 is already installed, upgrading pip3..."
-                python3 -m pip install --upgrade pip
-        fi
-        
-        pip3 install -r $path/api/requirements.txt
+                if ! command -v pip3 >/dev/null 2>&1; then
+                        echo "pip3 is NOT installed! Installing..."
+                        apt-get update
+                        apt-get install -y python3-pip
+                else
+                        echo "pip3 is already installed, upgrading pip3..."
+                        python3 -m pip install --upgrade pip
+                fi
+                
+                pip3 install -r $path/api/requirements.txt
 
-        if [ $? -ne 0 ]; then
-                echo "pip3 requirements install failed!"
-                exit 5
-        fi
+                if [ $? -ne 0 ]; then
+                        echo "pip3 requirements install failed!"
+                        exit 5
+                fi
 
-        if [ ! -d "/etc/raspap/api" ]; then
-                mkdir -p /etc/raspap/api
-        fi
-        
-        cp -r $path/api/* /etc/raspap/api/
+                if [ ! -d "/etc/raspap/api" ]; then
+                        mkdir -p /etc/raspap/api
+                fi
+                
+                cp -r $path/api/* /etc/raspap/api/
 
-        if [ ! -f /etc/systemd/system/restapi.service ]; then
-                cp $path/installers/restapi.service /etc/systemd/system/
-                systemctl enable restapi.service
+                if [ ! -f /etc/systemd/system/restapi.service ]; then
+                        cp $path/installers/restapi.service /etc/systemd/system/
+                        systemctl enable restapi.service
+                fi
         fi
 fi
+
+set_immutable_if_needed "/etc/fw_model"
+set_immutable_if_needed "/etc/target_model"
 
 if [[ $model == "EG500" || $model == "EG410" || $model == "ElastBox400" || $model == "EG324" ]]; then
         install_package_if_needed "openvpn" "openvpn"
@@ -230,8 +270,8 @@ if [ $model == "EG324" ]; then
         fi
 fi
 
-if [ "$1" == "reset" ]; then
-        echo $1
+if [[ $reset -eq 1 ]]; then
+        echo "reset"
         reset_configuration
 else
         cp $path/Elastel/$model/etc/init.d/* /etc/init.d/

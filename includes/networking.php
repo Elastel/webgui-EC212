@@ -51,6 +51,8 @@ function DisplayNetworkingConfig($type)
                             exec('sudo systemctl start dhcpcd.service');
                         }
                     } else {
+                        exec('sudo ip addr flush dev eth0');
+                        sleep(1);
                         exec('sudo /etc/init.d/S80dhcpcd restart');
                     }
                     
@@ -71,7 +73,7 @@ function DisplayNetworkingConfig($type)
                 } elseif ($type == 'lte') {
                     exec('sudo /etc/init.d/lte restart > /dev/null');
                 } elseif ($type == 'wlan0') {
-                    exec('sudo dhcpcd -n wlan0 > /dev/null');
+                    exec('sudo dhcpcd -n wlan0');
                 }
 
                 $status->addMessage('Network for '.$type.' updated.', 'success');
