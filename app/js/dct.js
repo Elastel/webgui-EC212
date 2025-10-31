@@ -2,6 +2,22 @@
 version: 1.0.0
 */
 
+function getReportingCenterFlag(p) {
+    let flag = 0;
+
+    if (p && p.length > 0) {
+        const parts = p.split('-');
+        for (let i = 0; i < parts.length && i < 5; i++) {
+            const n = parseInt(parts[i], 10);
+            if (n > 0 && n <= 5) {
+                flag |= (1 << (n - 1));
+            }
+        }
+    }
+
+    return flag;
+}
+
 function doesColumnExist(tableId, columnName) {
     var table = document.getElementById(tableId);
     var headers = table.querySelectorAll('th');
@@ -16,6 +32,12 @@ function doesColumnExist(tableId, columnName) {
 function writeValueByTag(object) {
     var tds = $(object).parent().parent().find("td");
     var tagName = tds.filter('[name="factor_name"]').text();
+	var serverCenter = tds.filter('[name="server_center"]').text();
+    if (serverCenter == '' || serverCenter == '-') {
+        serverCenter = '0';
+    }
+
+	var flag = getReportingCenterFlag(serverCenter);
 
     const overlay = document.createElement('div');
     overlay.style.position = 'fixed';
@@ -114,9 +136,9 @@ function writeValueByTag(object) {
         let params = '';
         if (tagName.includes(';')) {
             const selectedValue = labelOrSelect.value;
-            params = 'tagName=' + selectedValue + '&' + 'value=' + input.value;
+            params = 'tagName=' + selectedValue + ';' + flag + '&' + 'value=' + input.value;
         } else {
-            params = 'tagName=' + tagName + '&' + 'value=' + input.value
+            params = 'tagName=' + tagName + ';' + flag + '&' + 'value=' + input.value
         }
         
         if (input.value.length > 0) {
@@ -454,6 +476,8 @@ function tcpProtocolChange(num) {
         $('#tcp_page_protocol_snmp' + numStr).show();
         snmpVersionChangeTcp(num);
         securityLevelChangeTcp(num);
+	} else {
+        $('#tcp_page_protocol_modbus' + numStr).show();
     }
 }
 
@@ -725,6 +749,15 @@ function getRealtimeData() {
         if (jsonData == null)
             return false;
 
+		const jsonResult = Object.entries(jsonData).map(([key, value]) => {
+            if (key.includes(";"))  {
+                const [name, index] = key.split(";");
+                return [name, index, value];
+            } else {
+                return [key, 0, value];
+            }
+        });
+
         const trList = document.querySelectorAll('table tr');
         var dnp3 = document.getElementById('option_list_dnp3');
         var modbus_slave = document.getElementById('option_list_modbus_slave_point');
@@ -734,20 +767,29 @@ function getRealtimeData() {
                 if (tr.querySelector('td[name="source_object"]')) {
                     var factor = tr.querySelector('td[name="source_object"]').innerHTML;
                     factor = factor.substring(factor.indexOf('-') + 1)
-                    if (jsonData.hasOwnProperty(factor)) {
-                        cur_value += jsonData[factor];
+                    const jsonItem = jsonResult.find(([name]) => name === factor);
+                    if (jsonItem) {
+                        cur_value += jsonItem[2];
                     }
                 }
             } else {
                 if (tr.querySelector('td[name="factor_name"]')) {
                     //console.log(tr.querySelector('td[name="factor_name"]').innerHTML);
                     var factor = tr.querySelector('td[name="factor_name"]').innerHTML;
+					var serverCenter = tr.querySelector('td[name="server_center"]').innerHTML;
                     var factorList = factor.split(';');
+					var flag = getReportingCenterFlag(serverCenter);
                     factorList.forEach((key) => {
-                        // console.log(key);
-                        if (jsonData.hasOwnProperty(key)) {
-                            cur_value += jsonData[key] + ';';
-                        }    
+                        // console.log(flag);
+                        var jsonValue = '';
+                        jsonResult.forEach(item => {
+                            const [name, index, value] = item;
+                            if (name == key && (flag == parseInt(index) || index == 0)) {
+                                jsonValue = value;
+                                return;
+                            }
+                        });
+                        cur_value += jsonValue + ';';
                     })
 
                     if (cur_value.slice(-1) === ';') {
@@ -1011,6 +1053,7 @@ function selectItem(value) {
 
     input.value = value;
     device_id_list.classList.remove('show');
+    filterFunctionObject();
 }
 
 function selectItemObject(value) {
@@ -2107,48 +2150,46 @@ function loadModbusSlaveConfig() {
     });
 }
 
-function addDataDisplyItem(tbody, table, jsonData, key, keywords) {
-    if (jsonData.hasOwnProperty(key)) {
-        if (!key.includes(keywords) && keywords.length > 0) {
-            return false;
-        }
+function addDataDisplyItem(tbody, table, key, value, keywords) {
+    if (!key.includes(keywords) && keywords.length > 0) {
+        return false;
+    }
 
-        var td = table.querySelector('td[name="' + key + '"]');
-        if (td) {
-            var tr = td.parentNode;
-            tr.children[1].textContent = jsonData[key];
-        } else {
-            var tr = document.createElement('tr');
-            tr.className = "tr cbi-section-table-descr";
+    var td = table.querySelector('td[name="' + key + '"]');
+    if (td) {
+        var tr = td.parentNode;
+        tr.children[1].textContent = value;
+    } else {
+        var tr = document.createElement('tr');
+        tr.className = "tr cbi-section-table-descr";
 
-            // key
-            var tdKey = document.createElement('td');
-            tdKey.style.textAlign = "center";
-            tdKey.setAttribute('name', "factor_name");
-            tdKey.textContent = key;
-            tr.appendChild(tdKey);
+        // key
+        var tdKey = document.createElement('td');
+        tdKey.style.textAlign = "center";
+        tdKey.setAttribute('name', "factor_name");
+        tdKey.textContent = key;
+        tr.appendChild(tdKey);
 
-            // value
-            var tdValue = document.createElement('td');
-            tdValue.style.textAlign = "center";
-            tdValue.textContent = jsonData[key];
-            tr.appendChild(tdValue);
+        // value
+        var tdValue = document.createElement('td');
+        tdValue.style.textAlign = "center";
+        tdValue.textContent = value;
+        tr.appendChild(tdValue);
 
-            // button
-            var tdBtn = document.createElement('td');
-            tdBtn.style.textAlign = "center";
-            let button = document.createElement("button");
-            button.textContent = "Write";
-            button.classList.add("btn-primary");
-            button.style = "border-radius: 0.5rem;";
-            button.addEventListener("click", function (event) {
-                event.preventDefault();
-                writeValueByTag(this);
-            });
-            tdBtn.appendChild(button);
-            tr.appendChild(tdBtn);
-            tbody.appendChild(tr);
-        }
+        // button
+        var tdBtn = document.createElement('td');
+        tdBtn.style.textAlign = "center";
+        let button = document.createElement("button");
+        button.textContent = "Write";
+        button.classList.add("btn-primary");
+        button.style = "border-radius: 0.5rem;";
+        button.addEventListener("click", function (event) {
+            event.preventDefault();
+            writeValueByTag(this);
+        });
+        tdBtn.appendChild(button);
+        tr.appendChild(tdBtn);
+        tbody.appendChild(tr);
     }
 }
 
@@ -2169,6 +2210,15 @@ function getWebshowDate() {
             return;
         }
 
+		const jsonResult = Object.entries(jsonData).map(([key, value]) => {
+            if (key.includes(";"))  {
+                const [name, index] = key.split(";");
+                return [name, index, value];
+            } else {
+                return [key, 0, value];
+            }
+        });
+
         var table = document.getElementsByTagName("table")[0];
         var keywords = document.getElementsByName("keywords")[0].value;
         var select = document.getElementById('current_rule').value || "all";
@@ -2177,9 +2227,12 @@ function getWebshowDate() {
             var td = tr.querySelector('td[name]');
             if (td) {
                 var key = td.getAttribute('name');
-                if (!jsonData.hasOwnProperty(key) || (keywords.length > 0 && !key.includes(keywords))) {
-                    tr.remove();
-                }
+                jsonResult.forEach(item => {
+                    if (key = item[0] || (keywords.length > 0 && !key.includes(keywords))) {
+                        tr.remove();
+                        return;
+                    }
+                });
             }
         });
 
@@ -2189,11 +2242,10 @@ function getWebshowDate() {
         }
         var tbody = table.tBodies[0];
         if (select == "all") {
-            for (var key in jsonData) {
-                if (!addDataDisplyItem(tbody, table, jsonData, key, keywords)) {
-                    continue;
-                }
-            }
+            jsonResult.forEach(item => {
+                const [name, index, value] = item;
+                addDataDisplyItem(tbody, table, name, value, keywords);
+            });
         } else {
             factorList.forEach(function(item) {
                 if (!item.startsWith(select + '-')) {
@@ -2201,8 +2253,10 @@ function getWebshowDate() {
                 }
 
                 var key = item.substring(item.indexOf('-') + 1);
-                if (!addDataDisplyItem(tbody, table, jsonData, key, keywords)) {
-                    return;
+                const jsonItem = jsonResult.find(([name]) => name === key);
+                if (jsonItem) {
+                    const value = jsonItem[2];
+                    addDataDisplyItem(tbody, table, key, value, keywords);
                 }
             });
         }
