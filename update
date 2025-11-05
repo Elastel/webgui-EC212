@@ -254,6 +254,7 @@ if [[ $model == "EC212" ]]; then
                 sudo mkdir -p /etc/dropbear
         fi
         sed -i '/^sshd/d' "/etc/edaemon.conf"
+	echo '' > /etc/system_log
 fi
 
 sync
