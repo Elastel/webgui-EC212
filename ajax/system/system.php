@@ -5,28 +5,36 @@ require_once '../../includes/CSRF.php';
 require_once '../../includes/config.php';
 
 $type = $_GET['type'];
-exec("uci -P /var/state get network.wan.link", $network_status);
+$host = "github.com";
+$network_status = false;
+$ping = exec("ping -c 3 -W 5 " . escapeshellarg($host), $output, $status);
+if ($status === 0) {
+    $network_status = true;
+}
+
+$cmd_get_local_node = "cd /var/www/html; sudo git for-each-ref --format='%(objectname)' refs/heads/$(git branch --show-current)";
+$cmd_get_remote_node = "cd /var/www/html; sudo git for-each-ref --format='%(objectname)' refs/remotes/origin/$(git branch --show-current)";
 
 if ($type == "node_online_update") {
-    if ($network_status[0] != 'none') {
+    if ($network_status) {
         exec('cd /var/www/html; sudo git fetch origin');
     }
 
-    exec('cat /var/www/html/.git/refs/remotes/origin/$(git branch --show-current)', $new_node);
+    exec($cmd_get_remote_node, $new_node);
     $data['new_node'] = $new_node[0];
 
-    exec('cat /var/www/html/.git/refs/heads/$(git branch --show-current)', $cur_node);
+    exec($cmd_get_local_node, $cur_node);
     $data['cur_node'] = $cur_node[0];
 } else if ($type == "update_node") {
-    if ($network_status[0] != 'none') {
+    if ($network_status) {
         exec('cd /var/www/html; sudo git fetch origin');
         exec('cd /var/www/html; sudo git reset --hard origin/$(git branch --show-current)');
         exec('cd /var/www/html; sudo git pull origin $(git branch --show-current)');
         // check current node update
-        exec('cat /var/www/html/.git/refs/remotes/origin/$(git branch --show-current)', $new_node);
-        exec('cat /var/www/html/.git/refs/heads/$(git branch --show-current)', $cur_node);
+        exec($cmd_get_remote_node, $new_node);
+        exec($cmd_get_local_node, $cur_node);
         if ($new_node[0] == $cur_node[0]) {
-            exec('sudo git checkout *; sudo /var/www/html/update 2>&1', $info);
+            exec('sudo git reset --hard HEAD; sudo /var/www/html/update 2>&1', $info);
             $data['log'] = $info[0];
         } else {
             $data['error'] = "Fail to update node";
@@ -35,7 +43,7 @@ if ($type == "node_online_update") {
         $data['error'] = 'No network!';
     }
 } else if ($type == "reset_configs") {
-    exec('cd /var/www/html; sudo git checkout *');
+    exec('cd /var/www/html; sudo git reset --hard HEAD');
     exec('sudo /var/www/html/update reset 2>&1');
 } else if ($type == "download_backup") {
     exec('sudo rm -f /tmp/backup.tar.gz');
