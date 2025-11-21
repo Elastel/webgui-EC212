@@ -780,7 +780,7 @@ function getFavicon($target, $hostname)
 function setLoginLogo($target, $hostname)
 {
     $name='';
-    if ($target != null && strpos($target, "IQEG") !== false) {
+    if ($target != null && (strpos($target, "IQEG") !== false || strpos($target, "IQEC") !== false)) {
         $name = "Iqflow.png";
         echo '<img src="app/img/'.$name.'" class="navbar-logo" alt="logo" class="img-fluid" style="width: 20rem;">';
     } else if ($target != null && file_exists('/var/www/html/app/img/'.$hostname.'.php')) {
@@ -796,7 +796,7 @@ function setLoginLogo($target, $hostname)
 function setLoginGuide($target, $hostname)
 {
     $url='';
-    if ($target != null && strpos($target, "IQEG") !== false) {
+    if ($target != null && (strpos($target, "IQEG") !== false || strpos($target, "IQEC") !== false)) {
         $url = "https://docs.iqflow.io/";
     } else {
         $url = "https://docs.elastel.com/";
@@ -807,18 +807,20 @@ function setLoginGuide($target, $hostname)
          </a>';
 }
 
-function getLogo($target, $hostname)
+function setSidbarLogo($target, $hostname)
 {
     $name='';
-    if ($target != null && strpos($target, "IQEG") !== false) {
+    if ($target != null && (strpos($target, "IQEG") !== false || strpos($target, "IQEC") !== false)) {
         $name = "Iqflow.php";
+        echo '<img src="app/img/'. $name .'" class="navbar-logo" width="200" height="70">';
+        return;
     } else if ($target != null && file_exists('/var/www/html/app/img/'.$hostname.'.php')) {
         $name = $hostname . ".php";
     } else {
         $name = "elastel.php";
     }
 
-    return $name;
+    echo '<img src="app/img/'. $name .'" class="navbar-logo" width="200" height="50">';
 }
 
 function getModel()
@@ -867,6 +869,11 @@ function isIoExistts()
         case "EG410":
             $di_index_count += 2;
             $do_index_count += 2;
+            $com_count = 2;
+            break;
+        case "EG510":
+            $di_index_count += 6;
+            $do_index_count += 6;
             $com_count = 2;
             break;
     }
@@ -922,6 +929,8 @@ function get_serial_device_list()
         $comlist = array('/dev/ttyS1'=>'COM1', '/dev/ttyS2'=>'COM2', '/dev/ttyS3'=>'COM3', '/dev/ttyS4'=>'COM4');
     } else if ($model == "EC212") {
         $comlist = array('/dev/ttyS1'=>'COM1', '/dev/ttyS2'=>'COM2');
+    } else if ($model == "EG510") {
+        $comlist = array('/dev/ttyCH9344USB0'=>'COM1', '/dev/ttyCH9344USB1'=>'COM2');
     } else {
         $comlist = array('/dev/ttyACM0'=>'COM1', '/dev/ttyACM1'=>'COM2');
     }
