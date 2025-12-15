@@ -64,6 +64,7 @@ require_once 'includes/iotedge.php';
 require_once 'includes/ethernetip.php';
 require_once 'includes/mbus_client.php';
 require_once 'includes/snmp_client.php';
+require_once 'includes/scheduled.php';
 
 $model = getModel();
 $target = getTarget();

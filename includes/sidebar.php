@@ -179,6 +179,9 @@
                 <?php if(isBinExists("ttyd") || file_exists("/usr/local/bin/ttyd")) : ?>
                 <li class="nav-item" name="terminal" id="system_terminal"> <a class="nav-link" href="terminal"><?php echo _("Terminal"); ?></a></li>
                 <?php endif; ?>
+                <?php if(isBinExists("scheduled")) : ?>
+                <li class="nav-item" name="scheduled" id="system_scheduled"> <a class="nav-link" href="scheduled"><?php echo _("Scheduled Tasks"); ?></a></li>
+                <?php endif; ?>
                 <li class="nav-item" name="auth_conf" id="system_auth_conf"> <a class="nav-link" href="auth_conf"><?php echo _("Authentication"); ?></a></li>
                 <li class="nav-item" name="backup_restore" id="system_backup_restore"> <a class="nav-link" href="backup_restore"><?php echo _("Backup/Restore"); ?></a></li>
                 <li class="nav-item" name="backup_update" id="system_backup_update"> <a class="nav-link" href="backup_update"><?php echo _("Update/Restore"); ?></a></li>
