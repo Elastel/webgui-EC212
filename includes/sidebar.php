@@ -34,6 +34,8 @@
                 <?php if ($target != "RTU200") : ?>
                 <li class="nav-item" name="wifi" id="network_wifi" ><a class="nav-link" href="hostapd_conf"><?php echo _("WiFi AP"); ?></a></li>
                 <li class="nav-item" name="wifi_client" id="network_wifi_client" ><a class="nav-link" href="wpa_conf"><?php echo _("WiFi Client"); ?></a></li>
+				<?php endif; ?>
+                <?php if (isBinExists("failoverd")) : ?>
                 <li class="nav-item" name="online_detection" id="network_online_detection" ><a class="nav-link" href="detection_conf"><?php echo _("Online Detection"); ?></a></li>
                 <?php endif; ?>
                 <?php if (isBinExists("lora_pkt_fwd")) : ?>
