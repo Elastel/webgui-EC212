@@ -28,7 +28,7 @@ require_once 'includes/includes.php';
     <!-- Custom CSS -->
     <link href="<?php echo $theme_url; ?>" title="main" rel="stylesheet">
 
-    <link rel="shortcut icon" type="image/png" href="app/icons/<?php echo getFavicon($target, $hostname); ?>?ver=2.0">
+    <link rel="shortcut icon" type="image/png" href="app/icons/<?php echo getFavicon($target, $hostname); ?>?ver=2.1">
     <link rel="apple-touch-icon" sizes="180x180" href="app/icons/apple-touch-icon.png">
     <link rel="icon" type="image/png" href="app/icons/<?php echo getFavicon($target, $hostname); ?>" />
     <link rel="manifest" href="app/icons/site.webmanifest">

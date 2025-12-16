@@ -770,6 +770,8 @@ function getFavicon($target, $hostname)
     $name='';
     if ($target != null && file_exists('/var/www/html/app/icons/'.$hostname.'_favicon.png')) {
         $name = $hostname . "_favicon.png";
+    } else if ($target != null) {
+        return '';
     } else {
         $name = "favicon.png";
     }
@@ -782,6 +784,9 @@ function setLoginLogo($target, $hostname)
     $name='';
     if ($target != null && (strpos($target, "IQEG") !== false || strpos($target, "IQEC") !== false)) {
         $name = "Iqflow.png";
+        echo '<img src="app/img/'.$name.'" class="navbar-logo" alt="logo" class="img-fluid" style="width: 20rem;">';
+    } else if ($target != null && (strpos($target, "EMT") !== false)) {
+        $name = "emt.png";
         echo '<img src="app/img/'.$name.'" class="navbar-logo" alt="logo" class="img-fluid" style="width: 20rem;">';
     } else if ($target != null && file_exists('/var/www/html/app/img/'.$hostname.'.php')) {
         $name = $hostname . ".png";
@@ -814,6 +819,8 @@ function setSidbarLogo($target, $hostname)
         $name = "Iqflow.php";
         echo '<img src="app/img/'. $name .'" class="navbar-logo" width="200" height="70">';
         return;
+    } else if ($target != null && (strpos($target, "EMT") !== false)) {
+        $name = "emt.png";
     } else if ($target != null && file_exists('/var/www/html/app/img/'.$hostname.'.php')) {
         $name = $hostname . ".php";
     } else {
