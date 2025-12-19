@@ -803,6 +803,8 @@ function setLoginGuide($target, $hostname)
     $url='';
     if ($target != null && (strpos($target, "IQEG") !== false || strpos($target, "IQEC") !== false)) {
         $url = "https://docs.iqflow.io/";
+	} else if ($target != null && (strpos($target, "EMT") !== false)) {
+        return;
     } else {
         $url = "https://docs.elastel.com/";
     }
