@@ -791,6 +791,8 @@ function setLoginLogo($target, $hostname)
     } else if ($target != null && file_exists('/var/www/html/app/img/'.$hostname.'.php')) {
         $name = $hostname . ".png";
         echo '<img src="app/img/'.$name.'" class="navbar-logo" alt="logo" class="img-fluid" style="width: 20rem;">';
+    } else if (strpos($target, "&OEM") !== false) {
+        return;
     } else {
         $name = "elastel.png";
         echo '<img src="app/img/'.$name.'" class="navbar-logo" class="img-fluid" style="max-width: 100px;">';
@@ -803,7 +805,7 @@ function setLoginGuide($target, $hostname)
     $url='';
     if ($target != null && (strpos($target, "IQEG") !== false || strpos($target, "IQEC") !== false)) {
         $url = "https://docs.iqflow.io/";
-	} else if ($target != null && (strpos($target, "EMT") !== false)) {
+	  } else if (($target != null && (strpos($target, "EMT") !== false)) || (strpos($target, "&OEM") !== false)) {
         return;
     } else {
         $url = "https://docs.elastel.com/";
@@ -825,6 +827,8 @@ function setSidbarLogo($target, $hostname)
         $name = "emt.png";
     } else if ($target != null && file_exists('/var/www/html/app/img/'.$hostname.'.php')) {
         $name = $hostname . ".php";
+    } else if (strpos($target, "&OEM") !== false) {
+        return;
     } else {
         $name = "elastel.php";
     }
