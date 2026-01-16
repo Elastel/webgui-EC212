@@ -28,9 +28,9 @@ require_once 'includes/includes.php';
     <!-- Custom CSS -->
     <link href="<?php echo $theme_url; ?>" title="main" rel="stylesheet">
 
-    <link rel="shortcut icon" type="image/png" href="app/icons/<?php echo getFavicon($target, $hostname); ?>?ver=2.1">
+    <link rel="shortcut icon" type="image/png" href="<?php echo getFavicon($target, $hostname); ?>?ver=2.0">
     <link rel="apple-touch-icon" sizes="180x180" href="app/icons/apple-touch-icon.png">
-    <link rel="icon" type="image/png" href="app/icons/<?php echo getFavicon($target, $hostname); ?>" />
+    <link rel="icon" type="image/png" href="<?php echo getFavicon($target, $hostname); ?>" />
     <link rel="manifest" href="app/icons/site.webmanifest">
     <link rel="mask-icon" href="app/icons/safari-pinned-tab.svg" color="#b91d47">
     <meta name="msapplication-config" content="app/icons/browserconfig.xml">
@@ -82,10 +82,10 @@ require_once 'includes/includes.php';
     <script src="dist/sb-admin-2/js/sb-admin-2.js"></script>
 
     <!-- Custom JS -->
-    <script src="app/js/dct.js?version=1.0.8"></script>
-    <script src="app/js/custom.js?version=1.0.7"></script>
-    <script src="app/js/system.js?version=1.0.0"></script>
-    <script src="app/js/services.js?version=1.0.0"></script>
+    <script src="app/js/dct.js?<?php echo filemtime('app/js/dct.js'); ?>"></script>
+    <script src="app/js/custom.js?<?php echo filemtime('app/js/custom.js'); ?>"></script>
+    <script src="app/js/system.js?<?php echo filemtime('app/js/system.js'); ?>"></script>
+    <script src="app/js/services.js?<?php echo filemtime('app/js/services.js'); ?>"></script>
 
     <?php loadFooterScripts($extraFooterScripts); ?>
   </body>

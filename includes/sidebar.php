@@ -79,6 +79,7 @@
                             <li class="nav-item" name="mbus_client" id="dct_south_mbus_client"><a class="nav-link" href="mbuscli_conf"><?php echo _("Mbus Rules"); ?></a></li>
                             <li class="nav-item" name="snmp_client" id="dct_south_snmp_client"><a class="nav-link" href="snmpcli_conf"><?php echo _("SNMP Rules"); ?></a></li>
                             <li class="nav-item" name="iec1107" id="dct_south_iec1107"><a class="nav-link" href="iec1107_conf"><?php echo _("IEC62056-21 Rules"); ?></a></li>
+                            <li class="nav-item" name="dlms" id="dct_south_dlms"><a class="nav-link" href="dlms_conf"><?php echo _("DLMS Rules"); ?></a></li>
                             <?php if (isIoExistts()) : ?>
                             <li class="nav-item" name="io" id="dct_south_io"><a class="nav-link" href="io_conf"><?php echo _("IO"); ?></a></li>
                             <?php endif; ?>
@@ -133,7 +134,7 @@
             <div class="collapse navbar-collapse" id="navbar-collapse-remote">
                 <ul class="nav navbar-nav navbar-right">
                     <?php if ((strpos($target, "IQEG") === false && strpos($target, "IQEC") === false)) { ?>
-                        <?php if(isBinExists("baseagent")) : ?>
+                        <?php if(isBinExists("baseagent") || file_exists("/usr/local/baseagent/baseagent")) : ?>
                         <li class="nav-item" name="things_wing" id="remote_things_wing"> <a class="nav-link" href="things_wing"><?php echo _("ThingsWing"); ?></a></li>
                         <?php endif; ?>
                     <?php } ?>
