@@ -192,7 +192,7 @@ function DisplayDashboard(&$extraFooterScripts)
     exec('ip route | grep "default"  | grep -c "'. $lte_ifname[0] .'"', $enabled);
     $lteInfo = array();
     $lteInfo["enabled"] = $enabled[0];
-    if (file_exists("/dev/ttyUSB2")) {
+    if (file_exists("/dev/ttyUSB2") || file_exists("/dev/ttyUSB0")) {
         exec('ifconfig '. $lte_ifname[0] .' | grep -Eo "([0-9]+[.]){3}[0-9]+" | grep -v "255.255."', $ip_address);
         exec('ifconfig '. $lte_ifname[0] .' | grep -Eo "([0-9]+[.]){3}[0-9]+" | grep "255.255."', $netmask);
         exec('uci -P /var/state/ get dangle.dev.signal', $signal);
