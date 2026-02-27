@@ -1,0 +1,31 @@
+#! /bin/sh
+
+do_start()
+{
+	for dev in /sys/bus/usb/devices/*; do
+		if [ -f "$dev/idVendor" ]; then
+			idVendor=$(cat $dev/idVendor)
+			idProduct=$(cat $dev/idProduct)
+			if [ "$idVendor" = "2c7c" ] && [ "$idProduct" = "0901" ]; then
+				echo 2c7c 0901 > /sys/bus/usb-serial/drivers/option1/new_id
+			fi
+		fi
+	done
+}
+
+case "$1" in
+  start)
+        do_start
+        ;;
+  restart|force-reload)
+        $0 start
+        ;;
+  *)
+        echo "Usage: $SCRIPTNAME {start|restart}" >&2
+        exit 3
+        ;;
+esac
+
+:
+
+
