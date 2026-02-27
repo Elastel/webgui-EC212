@@ -11,5 +11,8 @@ config setting 'system'
 	option sms_password 'admin'
 
 config setting 'scheduled'
-	option enabled '0'
-
+        option enabled '1'
+        option mode '0'
+        option time '06:00:00'
+        option weekday '0'
+        option task 'reboot'
